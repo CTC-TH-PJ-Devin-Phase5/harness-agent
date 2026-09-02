@@ -7,7 +7,8 @@
 
 # Security Rules — Common (All Components)
 
-Applies to every file in this repo (`tools/`, `docs/`, sub-agent prompts).
+Applies to every file in this repo — application code, `docs/`, and the
+sub-agent prompts and rules themselves.
 These map to gate items #4 (SonarQube 0 Critical/High) and #5 (OWASP Top 10)
 of the project's security-and-quality gate. Unit/integration test pass rate
 and coverage % are process gates, not covered here.
