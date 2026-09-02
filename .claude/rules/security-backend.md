@@ -1,16 +1,30 @@
 ---
+# Example glob — point it at your project's actual backend source root. The
+# template ships with no application code, so there is nothing here for it to
+# match yet.
 paths:
-  - "tools/**/*.ts"
+  - "src/server/**/*.ts"
 ---
 
-# Security Rules — Backend (`tools/`)
+# Security Rules — Backend
 
-Loads when Claude reads a matching file under `tools/` (this repo's MCP
-servers and sub-agent adapter — the closest thing this project has to a
-"backend"). Known limitation: this does NOT reliably trigger on
-first-time file *creation* (Write), only on Read/Edit — see project notes.
-New MCP tools/handlers are exactly where this matters most, so back the
-`strict` items below with a hook rather than relying on this file alone.
+Covers server-side code: routes, handlers, queries, background jobs, and
+anything else that runs with the application's own privileges rather than a
+user's browser.
+
+In this harness the file loads by **explicit `Read` at a fixed path**, not by
+the glob above: `.claude/agents/execute.md` tells `execute` to read all five
+rule files before it writes anything in 4a, and CLAUDE.md § Rules says when
+the orchestrator loads them for 4b/Phase 5 review. So the glob is only
+relevant to tooling outside the harness that auto-attaches rules by path —
+where the known limitation applies that path-matching does NOT reliably
+trigger on first-time file *creation* (Write), only on Read/Edit. New
+endpoints and handlers are exactly where these rules matter most, so back the
+`strict` items below with a hook rather than relying on path-matching alone.
+
+This repo has no backend code of its own today (the harness is prompts, rules
+and docs), so on a ticket with no server-side surface this file simply has
+nothing to apply.
 
 Standard: **OWASP Top 10:2025**.
 

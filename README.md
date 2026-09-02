@@ -48,17 +48,55 @@ Orchestrator runbook: `CLAUDE.md`. Slash command: `.claude/commands/build.md`.
 
 ## Setup
 
+Phase 4 is branch-per-ticket: `execute` runs `git checkout -b <slug>/<NN>-<ticket-slug> <base>`
+where `<base>` is `main` or a blocking ticket's branch. That needs a git repo
+whose `main` already has **at least one commit** — `git init` alone leaves an
+unborn `main` that nothing can branch off, so the first commit is the part
+that actually matters.
+
+Starting a new project from this template:
+
 ```bash
-git init   # required: Phase 4 puts every ticket on its own branch
+git clone <this-repo> my-project && cd my-project
+rm -rf .git && git init -b main
+git add -A && git commit -m "🎉 add: project scaffold from agent-harness-template"
 ```
 
-Phase 4 is branch-per-ticket and commits through `git-convention.md`, so the
-harness needs a git repo with at least one commit on `main` before `/build`.
+The `rm -rf .git` is the point of that sequence: cloning hands you the
+template's own history and remote, and you almost certainly want neither in
+your project. Skip it and your first `/build` commits land on top of the
+template's commits, pointed at the template's origin.
+
+Then adjust `.claude/rules/` for your stack before the first `/build` — the
+`paths` globs and the example paths inside `coding-standard.md` §8/§10 are
+placeholders, since the template ships with no application code for them to
+match. In the harness these files are loaded by explicit `Read` at a fixed
+path rather than by those globs, so a stale glob won't stop a rule from
+loading — it just misleads any tooling outside the harness that attaches
+rules by path.
 
 Skill content lives directly in `.claude/skills/<name>/SKILL.md` — most of it
 originates from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT
 licensed), vendored into this repo rather than fetched at setup time. To pull
 in updates from upstream, copy the relevant `SKILL.md` file(s) over manually.
+
+### No CI, no build tooling
+
+The template deliberately ships with no `package.json`, no lockfile, and no
+CI workflow. An earlier version had a `.github/workflows/ci.yml` plus Node
+scripts that typechecked the harness's own TypeScript and rendered test
+reports; all of it was removed along with the `tools/` and `scripts/`
+directories it existed to serve, because a template shouldn't impose a
+toolchain on the project that clones it. Nothing in Phase 1–5 depends on
+that machinery: `execute` runs your project's own test commands through
+`Bash` and writes `logs/reports/<ticket>.html` by hand.
+
+So the gates in this harness are the ones described here — the human
+approval ask in 4b, the AC checks in 4c, and the reviews in 4b/Phase 5 — and
+none of them is enforced by a machine. If you want mechanical enforcement,
+add your own CI and hooks for your stack; treat these rules as the
+shift-left layer, not as a substitute for a pipeline that can actually block
+a merge.
 
 ## Test evidence
 

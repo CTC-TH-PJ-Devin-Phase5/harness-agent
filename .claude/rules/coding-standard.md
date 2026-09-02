@@ -1,14 +1,21 @@
 ---
+# Example glob — point it at your project's actual source root. The template
+# ships with no application code, so there is nothing here for it to match.
+# It is not what makes this file load in the harness: 4a and 4b/5 load these
+# rules by explicit `Read` at a fixed path (`.claude/agents/execute.md` lists
+# all five; CLAUDE.md § Rules says when the orchestrator loads which), so the
+# glob only matters to tooling outside the harness that auto-attaches rules
+# by path.
 paths:
-  - "tools/**/*.ts"
+  - "src/**/*.{ts,tsx}"
 ---
 
 # Coding Standard Rules
 
 Applies to TypeScript/TSX source files in this project, backend and frontend
-alike. This file is a starting template — replace the example paths in §8
-and the shared-package alias in §10 with your own project's actual layout
-before relying on this as the full spec.
+alike. This file is a starting template — replace the example glob above, the
+example paths in §8, and the shared-package alias in §10 with your own
+project's actual layout before relying on this as the full spec.
 
 ---
 
