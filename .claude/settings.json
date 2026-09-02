@@ -11,8 +11,19 @@
       "Edit(docs/adr/**)",
       "Write(docs/requirements/**)",
       "Edit(docs/requirements/**)",
-      "Write(logs/handoffs/**)",
       "Edit(LEARNING.md)",
+
+      "Write(src/**)",
+      "Edit(src/**)",
+      "Write(apps/**)",
+      "Edit(apps/**)",
+      "Write(packages/**)",
+      "Edit(packages/**)",
+      "Write(prisma/**)",
+      "Edit(prisma/**)",
+      "Write(tests/**)",
+      "Edit(tests/**)",
+      "Write(logs/reports/**)",
 
       "Bash(git status:*)",
       "Bash(git branch:*)",
@@ -20,13 +31,54 @@
       "Bash(git show:*)",
       "Bash(git diff:*)",
       "Bash(git rev-parse:*)",
-      "Bash(git merge-base:*)"
+      "Bash(git merge-base:*)",
+
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run db:seed:*)",
+      "Bash(npm run db:migrate:*)",
+      "Bash(pnpm test:*)",
+      "Bash(pnpm run test:*)",
+      "Bash(pnpm run lint:*)",
+      "Bash(pnpm run typecheck:*)",
+      "Bash(pnpm run build:*)",
+
+      "Bash(npx vitest:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx prettier:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma migrate:*)",
+      "Bash(npx prisma db push:*)",
+      "Bash(pnpm exec vitest:*)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(pnpm exec eslint:*)",
+      "Bash(pnpm exec prettier:*)",
+
+      "Bash(docker compose up:*)",
+      "Bash(docker compose ps:*)",
+      "Bash(docker compose logs:*)",
+      "Bash(docker compose stop:*)"
     ],
     "deny": [
       "Read(.env)",
       "Read(.env.*)",
       "Bash(git reset --hard:*)",
-      "Bash(git clean:*)"
+      "Bash(git clean:*)",
+      "Bash(git checkout --:*)",
+      "Bash(git checkout -f:*)",
+      "Bash(git checkout .:*)",
+      "Bash(git checkout HEAD:*)",
+      "Bash(git switch --discard-changes:*)",
+      "Bash(git restore:*)"
     ]
   }
 }
