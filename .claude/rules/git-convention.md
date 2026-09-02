@@ -86,10 +86,12 @@ reason. When present:
 - One logical change per commit. Do not mix a refactor with a behaviour change.
 - Never commit generated report output — see `.gitignore`.
 - Never commit secrets, tokens, credentials, or `.env` files.
-- Never commit directly to `main`. Every commit lands on that ticket's own branch
-  (`<slug>/<NN>-<ticket-slug>`, created per `.claude/agents/execute.md`'s
-  branch-per-ticket constraint) — `main` only gets touched by whatever merges these
-  branches later, which this harness does not automate yet.
+- Never commit directly to `main`. Every commit lands on the **task branch**
+  (`<slug>`, the requirements directory's own name, created per
+  `.claude/agents/execute.md`'s branch-per-task constraint) — one branch for the
+  whole task, one commit per ticket on it, in dependency order. `main` only gets
+  touched by whatever merges that branch later, which this harness does not
+  automate yet.
 - Only commit after the human has approved — the orchestrator asks directly in its
   own chat (CLAUDE.md § Phase 4b) and only then dispatches `execute` with
   `context.action: "commit"` (see `.claude/agents/execute.md`'s two dispatch

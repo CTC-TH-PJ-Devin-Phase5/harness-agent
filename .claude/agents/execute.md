@@ -13,14 +13,14 @@ You cannot pause mid-task to wait on a human, so the orchestrator calls you
 **twice per ticket** instead, distinguished by `context.action`:
 
 - **`action: "implement"` (or absent)** — the normal case, covered by
-  everything below: create/checkout the branch, implement, test, then
+  everything below: create/checkout the task branch, implement, test, then
   stop with the changes **uncommitted**. Do not commit,
   and do not ask anyone for approval — the orchestrator runs the human
   approval gate itself, in its own chat, after you return (CLAUDE.md §
   Phase 4b), precisely because it can block on an answer and you can't.
 - **`action: "commit"`** — a short follow-up call, made only after that
   human approval already succeeded. `context.commitSummary` describes what
-  was approved. Checkout the ticket's branch (it should already be
+  was approved. Checkout the task branch (it should already be
   current, with the same uncommitted changes your implement-mode run left
   behind), then `git add` + `git commit` per `git-convention.md`. Do not
   re-implement, do not re-run tests, do not touch anything beyond staging
@@ -70,27 +70,36 @@ two disagree.
   only happens on an `action: "commit"` dispatch, after the orchestrator's
   own human approval ask has already succeeded — see Two dispatch modes
   above.
-- **Create or checkout your ticket's own branch before writing anything.**
-  Every ticket gets its own branch — never work directly on `main`.
-  - **Branch name**: `<task-slug>/<NN>-<ticket-slug>`, derived from the
-    ticket file's own path
+- **Create or checkout the task's branch before writing anything.**
+  **One branch per task, not per ticket** — every ticket in the task
+  commits onto that same branch, in dependency order. Never work directly
+  on `main`.
+  - **Branch name**: `<task-slug>` — the directory name in the ticket
+    file's own path
     (`docs/requirements/<task-slug>/tickets/<NN>-<ticket-slug>.md`).
-  - **Base branch**: read the ticket's `Depends on` field.
-    - `None (can start immediately)` → base off `main`.
-    - One or more blocking tickets → base off the **highest-numbered**
-      blocking ticket's own branch (same naming convention), not off
-      `main` — that branch already carries that ticket's completed work,
-      and this harness runs tickets sequentially in dependency order so
-      there's exactly one chain to follow. (This scheme assumes
-      sequential execution — `execution.mode: "parallel"` would need real
-      multi-parent merges, which this harness doesn't do yet.)
-  - **First attempt on this ticket**: `git checkout -b <branch> <base>`
-    via `Bash`.
-  - **Retry (attempt 2/2), a Phase-5 reject re-run of this same ticket, or
-    an `action: "commit"` dispatch**: the branch already exists — `git
-    checkout <branch>` instead. Do not recreate it or discard its history.
-    On a commit dispatch this checkout should be a no-op: it's the same
-    branch your implement-mode run left uncommitted changes on.
+    Nothing about the ticket number or ticket slug appears in it.
+  - **Create or checkout, decided by whether it exists yet**: run `git
+    rev-parse --verify --quiet refs/heads/<task-slug>` via `Bash` (spell
+    out `refs/heads/` so a same-named tag or remote-tracking ref can't
+    answer for a local branch that isn't there). Non-zero exit → this is
+    the task's first ticket, so `git checkout -b <task-slug> main`. Exit 0
+    → an earlier ticket already created it, so `git checkout <task-slug>`.
+    That one check covers every case: first ticket, later ticket, a retry
+    (attempt 2/2), a Phase-5 reject re-run, and an `action: "commit"`
+    dispatch. Never recreate the branch, never reset it, and never branch
+    off it. On a commit dispatch the checkout is a no-op — it's the branch
+    your implement-mode run left the uncommitted changes on.
+  - **`Depends on` no longer picks a base branch**, because there is only
+    one branch; it orders the tickets. The orchestrator runs them
+    sequentially in dependency order, so by the time you start a ticket,
+    every blocker's commit is already in this branch's `HEAD` — that is
+    also what makes the orchestrator's 4b review able to use `git diff
+    HEAD` as its fixed point, seeing your uncommitted work for *this*
+    ticket and nothing else. So do not commit anything beyond this
+    ticket's scope, and do not leave unrelated edits in the working tree.
+    (Single-branch sequencing assumes `execution.mode: "sequential"` —
+    `parallel` would need branch-per-ticket and real merges, which this
+    harness doesn't do.)
   - Every commit for this ticket lands on this branch. Note the branch
     name in the ticket's Execution log row (in "What was done").
 - **Fix loop: one retry, total two attempts, per ticket.** After each
@@ -159,7 +168,7 @@ two disagree.
   its `## Execution log` table.
 - **Never commit on an implement-mode dispatch, no exceptions.** Once
   every declared test kind passes, stop — leave the changes uncommitted on
-  the ticket branch and return a diff summary plus the actual test output
+  the task branch and return a diff summary plus the actual test output
   and the report path. You are not the one who asks for approval or decides
   to commit; that's
   the orchestrator's job in CLAUDE.md § Phase 4b, run in its own chat where

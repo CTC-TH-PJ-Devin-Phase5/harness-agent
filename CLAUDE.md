@@ -47,12 +47,12 @@ One ticket at a time, dependency order (`execution.mode`, default sequential). D
 
 Dispatch per § Delegation — on Claude Code, the Agent tool with `subagent_type: "execute"`, after writing the handoff log yourself. Payload: `{ subAgent: "execute", task, context: { ticket, specPath, action: "implement" } }`.
 
-`execute` creates the ticket branch (`<slug>/<NN>-<ticket-slug>`, off its blocker's branch or `main`), then runs this loop (max two attempts):
+`execute` creates or checks out **the task branch** — one branch per task, named `<slug>` after the requirements directory, created off `main` by the first ticket and reused by every ticket after it — then runs this loop (max two attempts):
 
 1. Implement.
 2. Run **every test kind this ticket's `Test kinds` field declares** on the host via execute's Bash — `unit` and `integration` always, plus `e2e` when the field lists it.
 3. Write/update `logs/reports/<ticket>.html` (execute authors this directly with `Write` — no renderer script, no telemetry pipeline) and name that path in the summary it returns, with one row per declared kind.
-4. All declared kinds pass → stop the loop. **Leave the changes uncommitted** on the ticket branch and return success to 4b, with a diff summary, the actual test output (command run, pass/fail counts, per kind), and the report path. `execute` does not commit here and does not seek approval — a sub-agent cannot block mid-task on a human answer, so the approval gate now lives in the orchestrator (4b), not in `execute`.
+4. All declared kinds pass → stop the loop. **Leave the changes uncommitted** on the task branch and return success to 4b, with a diff summary, the actual test output (command run, pass/fail counts, per kind), and the report path. `execute` does not commit here and does not seek approval — a sub-agent cannot block mid-task on a human answer, so the approval gate now lives in the orchestrator (4b), not in `execute`.
 5. Fail → write the report anyway, then: if this was attempt 1/2, fix and loop back to step 1 (one retry). If this was attempt 2/2, stop and report failure with the actual output. Do not try a third time. A flaky `e2e` run gets no exemption here — it spends an attempt like any other failure, which is why the spec keeps that suite small.
 
 `execute` does not check Acceptance Criteria, does not mark `Status` done, and does not edit `Test kinds`.
@@ -63,19 +63,19 @@ The Agent tool injects **nothing** — it only loads `.claude/agents/execute.md`
 
 ### 4b Review this ticket, then the human approval gate
 
-You do this. After `execute` reports success, load `.claude/rules/coding-standard.md` and the security rules (`security-common`, plus `security-backend` / `security-frontend` if this ticket touched that surface). Then review **this ticket's branch** — still uncommitted at this point — against `spec.md` and **this ticket's** acceptance criteria (`code-review` skill: Standards axis = those rules, Spec axis = spec + AC). Do not skip to the next ticket. Do not load `git-convention` here — that belongs to the commit dispatch below.
+You do this. After `execute` reports success, load `.claude/rules/coding-standard.md` and the security rules (`security-common`, plus `security-backend` / `security-frontend` if this ticket touched that surface). Then review **this ticket's own uncommitted changes on the task branch** — nothing has landed yet at this point — against `spec.md` and **this ticket's** acceptance criteria (`code-review` skill: Standards axis = those rules, Spec axis = spec + AC). Do not skip to the next ticket. Do not load `git-convention` here — that belongs to the commit dispatch below.
 
 Read `logs/reports/<ticket>.html` (the path `execute` returned) and this ticket file's own `## Execution log` table as part of this review — **every kind listed in this ticket's `Test kinds` field** must show a pass on the latest attempt for this to count as tests-passing; if a declared kind is missing or ambiguous in either source, treat that as a failed gate, not a pass, and do not check AC off it. A report with no `e2e` row on a ticket that declares `e2e` means the e2e run never happened, not that it turned out not to be needed. Note in your review which AC the tests actually covered.
 
 Check the `Test kinds` field itself against what Phase 3 approved. It is not `execute`'s field to edit, so if a kind has gone missing since the breakdown was approved, that is a failed gate too — dropping a declared kind removes the gate rather than satisfying it, which is exactly the quiet weakening of a control that `security-common.md` § Never Weaken Existing Controls forbids. Narrowing the kinds is the human's call in Phase 3, not a mid-implementation adjustment.
 
-Reading a diff is review, not implementation, so you do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/`merge-base`, allowlisted in `.claude/settings.json`). `git diff <base>` shows uncommitted working-tree changes just as well as committed ones, so this is enough even though nothing has landed yet. The fixed point is this ticket's base branch — its blocker's branch, or `main` for an unblocked ticket. Two deviations from the upstream `code-review` skill: the spec source is always `docs/requirements/<slug>/spec.md` plus this ticket's AC, so skip its issue-tracker lookup and never ask for `/setup-matt-pocock-skills`; and mutating git (`push`, `reset --hard`, `clean`) stays denied to you.
+Reading a diff is review, not implementation, so you do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/`merge-base`, allowlisted in `.claude/settings.json`). `git diff <base>` shows uncommitted working-tree changes just as well as committed ones, so this is enough even though nothing has landed yet. **The fixed point is `HEAD`** — every earlier ticket in this task is already committed on this same branch, so `git diff HEAD` is exactly this ticket's work and nothing else. (`git diff main...HEAD` is the whole task so far — that's Phase 5's fixed point, not this gate's.) Two deviations from the upstream `code-review` skill: the spec source is always `docs/requirements/<slug>/spec.md` plus this ticket's AC, so skip its issue-tracker lookup and never ask for `/setup-matt-pocock-skills`; and mutating git (`push`, `reset --hard`, `clean`) stays denied to you.
 
 If the review finds a miss, stop here (see the STOP rule in 4c) — do not ask for human approval on a diff that already failed review.
 
 If the review is clean, the human approval gate is yours to run, directly in this chat: present what changed, your review verdict, and the test result, then ask for an explicit yes/no to commit. Blocking, no skip, no timeout — the same rule as Phase 1. This is the harness's one human checkpoint; nothing here may auto-approve.
 
-- Approved → write a new handoff log, then dispatch `execute` again with `{ subAgent: "execute", task, context: { ticket, specPath, action: "commit", commitSummary } }`. This second call only runs `git add` + `git commit` on the already-checked-out ticket branch per `git-convention.md` — it does not re-implement or re-test. Record the commit hash it returns in the ticket file.
+- Approved → write a new handoff log, then dispatch `execute` again with `{ subAgent: "execute", task, context: { ticket, specPath, action: "commit", commitSummary } }`. This second call only runs `git add` + `git commit` on the already-checked-out task branch per `git-convention.md` — it does not re-implement or re-test. Record the commit hash it returns in the ticket file.
 - Rejected → stop the whole ticket (see 4c); do not commit.
 
 ### 4c Check Acceptance Criteria
@@ -93,11 +93,11 @@ There is no "review looked fine, moving on" shortcut — a clean review only aut
 - All four true → next ticket.
 - Two failed test attempts, review finds a miss, human rejects the approval, or any AC still unchecked → stop the whole task, tell the human which ticket/criteria and why, wait.
 
-The tip of the work lives on the last completed ticket's branch, not `main`.
+The tip of the work lives on the task branch `<slug>` — one commit per completed ticket, in order — not on `main`.
 
 ## Phase 5 — Review (whole task)
 
-Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the tip branch against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
+Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the task branch `<slug>` (fixed point: `git diff main...HEAD`) against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
 
 Confirm every ticket's own `## Execution log` table and `logs/reports/<ticket>.html` show a passing final attempt for **every kind that ticket declares in `Test kinds`**, and cite both in `review.md` (the HTML path, not its contents — it's git-ignored generated output). Call out explicitly any ticket whose log/report doesn't show every declared kind passing, or where either source is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
 
