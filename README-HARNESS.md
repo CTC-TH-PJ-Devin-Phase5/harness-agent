@@ -69,11 +69,15 @@ template's own history and remote, and you almost certainly want neither in
 your project. Skip it and your first `/build` commits land on top of the
 template's commits, pointed at the template's origin.
 
-Then overwrite the root `README.md` with your project's own. It ships as a
-short pointer to this file for one reason: GitHub renders `README.md` on a
-repo's front page and no other filename, so the harness documentation lives
-here in `README-HARNESS.md` to leave that slot free for you. Keep this file
-along with `CLAUDE.md`, `.claude/` and `LEARNING.md` — those are the harness.
+Then delete `.github/README.md` and write your project's own root
+`README.md`. That stub exists because GitHub renders a repo's front page
+only from a file named exactly `README.md`, checked in `.github/` first,
+then the root, then `docs/` — there is no setting that points it at
+`README-HARNESS.md`. Putting the stub in `.github/` leaves the root
+`README.md` slot free for you, but it also **outranks** whatever you write
+there, so your front page keeps showing this template until you remove it.
+Keep this file along with `CLAUDE.md`, `.claude/` and `LEARNING.md` — those
+are the harness.
 
 Then adjust `.claude/rules/` for your stack before the first `/build` — the
 `paths` globs and the example paths inside `coding-standard.md` §8/§10 are
@@ -180,7 +184,7 @@ commit. See CLAUDE.md § Phase 4b.
 | Path | Purpose |
 |---|---|
 | `README-HARNESS.md` | This file — the harness's own documentation |
-| `README.md` | Short pointer to this file, so GitHub's front page renders something; replace it with your project's own README |
+| `.github/README.md` | Short pointer to this file, so GitHub's front page renders something; delete it and write your own root `README.md` |
 | `CLAUDE.md` | Orchestrator runbook (always-loaded) |
 | `.claude/skills/` | Plain-text skill content the orchestrator and `execute` read directly |
 | `.claude/commands/build.md` | Orchestrator prompt (the `/build` slash command) |

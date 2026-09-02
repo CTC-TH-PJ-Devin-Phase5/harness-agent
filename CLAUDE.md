@@ -146,7 +146,7 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 
 ## Pointers
 
-- `README-HARNESS.md` — why the harness exists, setup, directory map. (Root `README.md` is only a short pointer to it, so that GitHub has something to render while leaving the `README.md` slot free for the project that clones this.)
+- `README-HARNESS.md` — why the harness exists, setup, directory map. (`.github/README.md` is only a short pointer to it, so that GitHub has something to render on the front page while leaving the root `README.md` slot free for the project that clones this. There is no root `README.md`.)
 - `.claude/commands/build.md` — full `/build` orchestrator prompt (gates, retry, reject loop).
 - `.claude/agents/execute.md` — when changing the `execute` role or tool scope.
 - `.claude/rules/` — when to load: see Rules section (4a implement + 4b/5 Standards review, not Phase 1–3).
