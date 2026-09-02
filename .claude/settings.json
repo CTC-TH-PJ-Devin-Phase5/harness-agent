@@ -29,11 +29,5 @@
       "Bash(git reset --hard:*)",
       "Bash(git clean:*)"
     ]
-  },
-  "mcpServers": {
-    "telemetry": {
-      "command": "pnpm",
-      "args": ["run", "telemetry-mcp"]
-    }
   }
 }

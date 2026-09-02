@@ -5,8 +5,7 @@
         "Read",
         "Write",
         "Edit",
-        "Bash",
-        "mcp__telemetry__record"
+        "Bash"
       ]
     }
   },
