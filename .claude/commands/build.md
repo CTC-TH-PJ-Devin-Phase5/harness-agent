@@ -76,13 +76,15 @@ blocker's branch or `main`), then loops at most twice:
 
 1. Implement.
 2. Run unit tests and integration tests on the host via execute's Bash.
-3. Both pass → stop, **leave the changes uncommitted**, return success +
-   diff summary + the actual test output (there is no generated report) →
-   4b. `execute` cannot pause mid-task for a human answer, so it never
-   asks for approval or commits itself — that's your job next, in 4b.
-4. Fail on attempt 1/2 → fix and loop back to step 1 (one retry).
-   Fail on attempt 2/2 → stop and report failure with the actual output.
-   Do not try a third time.
+3. Write/update `logs/reports/<ticket>.html` (execute authors this
+   directly with `Write` — no renderer script, no telemetry pipeline).
+4. Both pass → stop, **leave the changes uncommitted**, return success +
+   diff summary + the actual test output + the report path → 4b. `execute`
+   cannot pause mid-task for a human answer, so it never asks for approval
+   or commits itself — that's your job next, in 4b.
+5. Fail → write the report anyway, then: fail on attempt 1/2 → fix and
+   loop back to step 1 (one retry). Fail on attempt 2/2 → stop and report
+   failure with the actual output. Do not try a third time.
 
 `execute` does not check Acceptance Criteria and does not mark
 `Status` done.
@@ -91,11 +93,11 @@ blocker's branch or `main`), then loops at most twice:
 After `execute` reports success, load `.claude/rules/coding-standard.md`
 and the security rules, then review this ticket's branch — still
 uncommitted — against `spec.md` and this ticket's acceptance criteria
-(`code-review`). Do not skip to the next ticket. Check the test output
-`execute` returned and this ticket's own `## Execution log` table too:
-both unit and integration must show a pass on the latest attempt for this
-to count as tests-passing — a missing or ambiguous kind is a failed gate,
-not a pass.
+(`code-review`). Do not skip to the next ticket. Read
+`logs/reports/<ticket>.html` (the path `execute` returned) and this
+ticket's own `## Execution log` table too: both unit and integration must
+show a pass on the latest attempt for this to count as tests-passing — a
+missing or ambiguous kind in either source is a failed gate, not a pass.
 
 If the review is clean, ask the human directly in this chat for approval
 to commit — blocking, no skip, no timeout, same rule as Phase 1. Approved →
@@ -125,10 +127,11 @@ acceptance criteria. Confirm the `[x]` marks still match the code. The
 "final state" lives on the last-completed ticket's own branch. Write
 your findings to `docs/requirements/<slug>/review.md`.
 
-Confirm every ticket's own `## Execution log` table shows a passing final
-attempt for both unit and integration tests, and cite that in `review.md`.
-Call out any ticket whose log doesn't show both passing, or whose log is
-missing entirely (that one's tests were never recorded — unverified).
+Confirm every ticket's own `## Execution log` table and
+`logs/reports/<ticket>.html` show a passing final attempt for both unit
+and integration tests, and cite both in `review.md`. Call out any ticket
+where either doesn't show both passing, or either is missing entirely
+(that one's tests were never recorded — unverified).
 
 Present a summary to the human and ask for approve/reject. **Never
 auto-approve.**

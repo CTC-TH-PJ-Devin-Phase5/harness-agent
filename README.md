@@ -62,13 +62,19 @@ in updates from upstream, copy the relevant `SKILL.md` file(s) over manually.
 
 ## Test evidence
 
-There is no generated test report. `execute` runs unit and integration tests
-on the host via `Bash` and reports the actual command plus pass/fail counts
-directly in the summary it returns to the orchestrator (CLAUDE.md § 4a), and
-logs each attempt as a row in that ticket's own `## Execution log` table
-(`.claude/agents/execute.md`). The orchestrator reads that table — not a
-rendered file — during the 4b per-ticket review and the Phase 5 whole-task
-review.
+`execute` runs unit and integration tests on the host via `Bash`, then
+writes `logs/reports/<ticket>.html` itself directly with `Write` — a small
+self-contained HTML file, one table per attempt, cumulative across
+retries. There is no renderer script or telemetry pipeline behind it: the
+sub-agent authors the file's HTML by hand, which is enough for something
+this simple and adds no dependency. It also reports the actual command
+plus pass/fail counts directly in the summary it returns to the
+orchestrator (CLAUDE.md § 4a), and logs each attempt as a row in that
+ticket's own `## Execution log` table (`.claude/agents/execute.md`). The
+orchestrator reads both the HTML report and that table during the 4b
+per-ticket review and the Phase 5 whole-task review. `logs/reports/*.html`
+is git-ignored per `git-convention.md` §5 — it's regenerated per run, not
+committed.
 
 ## Running
 
@@ -115,4 +121,5 @@ commit. See CLAUDE.md § Phase 4b.
 | `CONTEXT.md` / `docs/adr/` | Glossary and ADRs written during Phase 1 |
 | `docs/requirements/<slug>/` | spec.md / tickets/*.md / review.md / handoffs/*.json per task |
 | `logs/handoffs/` | Fallback handoff logs when the task slug cannot be inferred |
+| `logs/reports/` | Per-ticket HTML test reports, written directly by `execute` (git-ignored) |
 | `LEARNING.md` | Durable, curated lessons carried across runs |

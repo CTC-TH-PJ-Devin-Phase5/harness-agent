@@ -48,8 +48,9 @@ Dispatch per § Delegation — on Claude Code, the Agent tool with `subagent_typ
 
 1. Implement.
 2. Run **unit tests and integration tests** on the host via execute's Bash.
-3. Both pass → stop the loop. **Leave the changes uncommitted** on the ticket branch and return success to 4b, with a diff summary and the actual test output (command run, pass/fail counts) — there is no generated report, this returned summary plus the ticket file's own `## Execution log` row is the only test evidence you get. `execute` does not commit here and does not seek approval — a sub-agent cannot block mid-task on a human answer, so the approval gate now lives in the orchestrator (4b), not in `execute`.
-4. Fail → log the failure output, then: if this was attempt 1/2, fix and loop back to step 1 (one retry). If this was attempt 2/2, stop and report failure with the actual output. Do not try a third time.
+3. Write/update `logs/reports/<ticket>.html` (execute authors this directly with `Write` — no renderer script, no telemetry pipeline) and name that path in the summary it returns.
+4. Both pass → stop the loop. **Leave the changes uncommitted** on the ticket branch and return success to 4b, with a diff summary, the actual test output (command run, pass/fail counts), and the report path. `execute` does not commit here and does not seek approval — a sub-agent cannot block mid-task on a human answer, so the approval gate now lives in the orchestrator (4b), not in `execute`.
+5. Fail → write the report anyway, then: if this was attempt 1/2, fix and loop back to step 1 (one retry). If this was attempt 2/2, stop and report failure with the actual output. Do not try a third time.
 
 `execute` does not check Acceptance Criteria and does not mark `Status` done.
 
@@ -61,7 +62,7 @@ The Agent tool injects **nothing** — it only loads `.claude/agents/execute.md`
 
 You do this. After `execute` reports success, load `.claude/rules/coding-standard.md` and the security rules (`security-common`, plus `security-backend` / `security-frontend` if this ticket touched that surface). Then review **this ticket's branch** — still uncommitted at this point — against `spec.md` and **this ticket's** acceptance criteria (`code-review` skill: Standards axis = those rules, Spec axis = spec + AC). Do not skip to the next ticket. Do not load `git-convention` here — that belongs to the commit dispatch below.
 
-Check the test result `execute` returned (command run, pass/fail counts) and this ticket file's own `## Execution log` table as part of this review — both unit and integration must show a pass on the latest attempt for this to count as tests-passing; if either kind is missing or ambiguous, treat that as a failed gate, not a pass, and do not check AC off it. Note in your review which AC the tests actually covered.
+Read `logs/reports/<ticket>.html` (the path `execute` returned) and this ticket file's own `## Execution log` table as part of this review — both unit and integration must show a pass on the latest attempt for this to count as tests-passing; if either kind is missing or ambiguous in either source, treat that as a failed gate, not a pass, and do not check AC off it. Note in your review which AC the tests actually covered.
 
 Reading a diff is review, not implementation, so you do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/`merge-base`, allowlisted in `.claude/settings.json`). `git diff <base>` shows uncommitted working-tree changes just as well as committed ones, so this is enough even though nothing has landed yet. The fixed point is this ticket's base branch — its blocker's branch, or `main` for an unblocked ticket. Two deviations from the upstream `code-review` skill: the spec source is always `docs/requirements/<slug>/spec.md` plus this ticket's AC, so skip its issue-tracker lookup and never ask for `/setup-matt-pocock-skills`; and mutating git (`push`, `reset --hard`, `clean`) stays denied to you.
 
@@ -93,7 +94,7 @@ The tip of the work lives on the last completed ticket's branch, not `main`.
 
 Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the tip branch against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
 
-Confirm every ticket's own `## Execution log` table shows a passing final attempt for both unit and integration tests, and cite that in `review.md`. Call out explicitly any ticket whose log doesn't show both passing, or whose log is missing entirely — the latter means its tests were never recorded, and the decision must not be made without flagging that as unverified.
+Confirm every ticket's own `## Execution log` table and `logs/reports/<ticket>.html` show a passing final attempt for both unit and integration tests, and cite both in `review.md` (the HTML path, not its contents — it's git-ignored generated output). Call out explicitly any ticket whose log/report doesn't show both passing, or where either is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
 
 - Approve → append a dated lessons section to `LEARNING.md`. Stop.
 - Reject → uncheck the implicated AC, re-run Phase 4 for those tickets only, then Phase 5 again.
@@ -147,6 +148,7 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 - `.claude/skills/code-review/SKILL.md` — Phase 4b per-ticket review and Phase 5 whole-task review.
 - `docs/requirements/<slug>/handoffs/` — exact context sent to each sub-agent.
 - `.claude/harness.json` — `execution.mode`, `permissions` (mirrors `execute.md`'s `tools:` frontmatter), `approval.autoApprove` (must stay `false`). (Claude Code's own settings live in `.claude/settings.json`.)
+- `logs/reports/<ticket>.html` — per-ticket test report, written directly by `execute` (no renderer script). Git-ignored per `git-convention.md` §5; you Read it in 4b, `execute` writes it in 4a.
 - `LEARNING.md` — prior-run lessons; read at `/build` start and before each execute ticket.
 
 ## Plan Mode
