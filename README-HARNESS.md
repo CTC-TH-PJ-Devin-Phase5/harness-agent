@@ -8,6 +8,16 @@ Single-agent sessions drift: scope creeps, the agent grades its own homework, an
 
 ## Workflow
 
+![The harness's five-phase pipeline](diagrams/workflow-pipeline.svg)
+
+Phase 1–3 and 5 all run on the orchestrator's own thread; only 4a leaves it.
+It leaves it *twice* per ticket, because a sub-agent cannot block waiting on a
+human answer — so the one approval checkpoint sits between the two dispatches:
+
+![Phase 4 per-ticket loop with two execute dispatches](diagrams/workflow-phase4.svg)
+
+The same flow as text, with the retry and stop paths spelled out
+
 ```
 /build "<task description>"
   │
@@ -46,7 +56,11 @@ You approve/reject (manual, always)
                loop back to Phase 5
 ```
 
+
+
 Orchestrator runbook: `CLAUDE.md`. Slash command: `.claude/commands/build.md`.
+Diagram sources: `diagrams/` (hand-written SVG, no build step — edit the file
+directly and keep it in step with `CLAUDE.md` when a phase or gate changes).
 
 ## Setup
 
@@ -155,6 +169,8 @@ claude
 > /build add a GET /goodbye endpoint that mirrors /hello
 ```
 
+
+
 ## Handoff logs
 
 Before every sub-agent call, the exact `{ subAgent, task, context }` payload is
@@ -171,7 +187,7 @@ injects **no skill or rule content** — it loads the role file and grants
 tools, full stop. So `execute` Reads `.claude/skills/{implement,tdd}/SKILL.md`
 and `.claude/rules/*.md` itself, as the top of `.claude/agents/execute.md`
 instructs — a sub-agent that never reads its own rules looks identical to one
-following them, so there is no injection step to fall back on here.
+following them, so there is no injection step to fall back on here.[tanaka@acme.co](mailto:tanaka@acme.co)
 
 `execute` cannot pause mid-task for a human answer, so the orchestrator
 dispatches it **twice per ticket**: once to implement and test (stopping
@@ -181,19 +197,23 @@ commit. See CLAUDE.md § Phase 4b.
 
 ## Directory map
 
-| Path | Purpose |
-|---|---|
-| `README-HARNESS.md` | This file — the harness's own documentation |
-| `.github/README.md` | Short pointer to this file, so GitHub's front page renders something; delete it and write your own root `README.md` |
-| `CLAUDE.md` | Orchestrator runbook (always-loaded) |
-| `.claude/skills/` | Plain-text skill content the orchestrator and `execute` read directly |
-| `.claude/commands/build.md` | Orchestrator prompt (the `/build` slash command) |
-| `.claude/agents/execute.md` | `execute` role prompt + its real tool scope (`tools:` frontmatter) |
-| `.claude/harness.json` | Harness config: `execution.mode`, `permissions` (mirrors `execute.md`'s tool scope), `approval.autoApprove` |
-| `.claude/settings.json` | Claude Code's own config (permission allowlist) |
-| `.claude/rules/` | Project coding/security/git rules — load at 4a (execute) and 4b/5 (review), not Phase 1–3. Adjust the example paths to your project |
-| `CONTEXT.md` / `docs/adr/` | Glossary and ADRs written during Phase 1 |
-| `docs/requirements/<slug>/` | spec.md / tickets/*.md / review.md / handoffs/*.json per task |
-| `logs/handoffs/` | Fallback handoff logs when the task slug cannot be inferred |
-| `logs/reports/` | Per-ticket HTML test reports, written directly by `execute` (git-ignored) |
-| `LEARNING.md` | Durable, curated lessons carried across runs |
+
+| Path                        | Purpose                                                                                                                             |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `README-HARNESS.md`         | This file — the harness's own documentation                                                                                         |
+| `.github/README.md`         | Short pointer to this file, so GitHub's front page renders something; delete it and write your own root `README.md`                 |
+| `diagrams/`                 | Workflow diagrams embedded above — hand-written SVG, no build step                                                                  |
+| `CLAUDE.md`                 | Orchestrator runbook (always-loaded)                                                                                                |
+| `.claude/skills/`           | Plain-text skill content the orchestrator and `execute` read directly                                                               |
+| `.claude/commands/build.md` | Orchestrator prompt (the `/build` slash command)                                                                                    |
+| `.claude/agents/execute.md` | `execute` role prompt + its real tool scope (`tools:` frontmatter)                                                                  |
+| `.claude/harness.json`      | Harness config: `execution.mode`, `permissions` (mirrors `execute.md`'s tool scope), `approval.autoApprove`                         |
+| `.claude/settings.json`     | Claude Code's own config (permission allowlist)                                                                                     |
+| `.claude/rules/`            | Project coding/security/git rules — load at 4a (execute) and 4b/5 (review), not Phase 1–3. Adjust the example paths to your project |
+| `CONTEXT.md` / `docs/adr/`  | Glossary and ADRs written during Phase 1                                                                                            |
+| `docs/requirements/<slug>/` | spec.md / tickets/*.md / review.md / handoffs/*.json per task                                                                       |
+| `logs/handoffs/`            | Fallback handoff logs when the task slug cannot be inferred                                                                         |
+| `logs/reports/`             | Per-ticket HTML test reports, written directly by `execute` (git-ignored)                                                           |
+| `LEARNING.md`               | Durable, curated lessons carried across runs                                                                                        |
+
+

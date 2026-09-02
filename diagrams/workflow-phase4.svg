@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="644" viewBox="0 0 680 644" role="img">
+<title>Phase 4 per-ticket loop with two execute dispatches</title>
+<desc>One ticket flows through 4a implement by the execute sub-agent, then 4b review by the orchestrator, then a blocking human approval, then a second execute dispatch that commits, then 4c acceptance-criteria checking. Failure paths on the right show the single retry inside 4a and the conditions that stop the whole ticket.</desc>
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+rect{stroke-width:1.5}
+.ti{font-size:14px;font-weight:500}
+.sb{font-size:12px;font-weight:400}
+.bo{fill:#EEEDFE;stroke:#534AB7}.to{fill:#3C3489}.so{fill:#534AB7}
+.be{fill:#E1F5EE;stroke:#0F6E56}.te{fill:#085041}.se{fill:#0F6E56}
+.bh{fill:#FAECE7;stroke:#993C1D}.th{fill:#712B13}.sh{fill:#993C1D}
+.bf{fill:#FCEBEB;stroke:#A32D2D}.tf{fill:#791F1F}.sf{fill:#A32D2D}
+.bn{fill:#F1EFE8;stroke:#5F5E5A}.tn{fill:#444441}.sn{fill:#5F5E5A}
+.ln{stroke:#888780;stroke-width:1.5}.ah{fill:#888780}
+.bg{fill:#FFFFFF;stroke:none}
+@media (prefers-color-scheme:dark){
+.bg{fill:#22211E}
+.bo{fill:#3C3489;stroke:#AFA9EC}.to{fill:#CECBF6}.so{fill:#AFA9EC}
+.be{fill:#085041;stroke:#5DCAA5}.te{fill:#9FE1CB}.se{fill:#5DCAA5}
+.bh{fill:#712B13;stroke:#F0997B}.th{fill:#F5C4B3}.sh{fill:#F0997B}
+.bf{fill:#791F1F;stroke:#F09595}.tf{fill:#F7C1C1}.sf{fill:#F09595}
+.bn{fill:#444441;stroke:#B4B2A9}.tn{fill:#D3D1C7}.sn{fill:#B4B2A9}
+}
+</style>
+<defs>
+<marker id="ae" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
+<marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
+</defs>
+
+<rect class="bg" x="0" y="0" width="680" height="644"/>
+
+<rect class="bn" x="55" y="40" width="300" height="32" rx="16"/>
+<text class="sb sn" x="205" y="56" text-anchor="middle" dominant-baseline="central">ticket NN — dependency order</text>
+<line class="ln" x1="205" y1="72" x2="205" y2="96" marker-end="url(#ae)"/>
+
+<rect class="be" x="40" y="96" width="330" height="82" rx="4"/>
+<text class="ti te" x="205" y="116" text-anchor="middle" dominant-baseline="central">4a implement — execute</text>
+<text class="sb se" x="205" y="137" text-anchor="middle" dominant-baseline="central">branch, code, run declared kinds</text>
+<text class="sb se" x="205" y="158" text-anchor="middle" dominant-baseline="central">stops uncommitted, max 2 attempts</text>
+<line class="ln" x1="370" y1="137" x2="396" y2="137" marker-end="url(#ae)" marker-start="url(#as)"/>
+<rect class="bf" x="396" y="104" width="244" height="66" rx="4"/>
+<text class="ti tf" x="518" y="126" text-anchor="middle" dominant-baseline="central">fail 1/2 → fix, loop once</text>
+<text class="sb sf" x="518" y="148" text-anchor="middle" dominant-baseline="central">2/2 fails → stop</text>
+<line class="ln" x1="205" y1="178" x2="205" y2="202" marker-end="url(#ae)"/>
+
+<rect class="bo" x="40" y="202" width="330" height="64" rx="4"/>
+<text class="ti to" x="205" y="224" text-anchor="middle" dominant-baseline="central">4b review this ticket</text>
+<text class="sb so" x="205" y="246" text-anchor="middle" dominant-baseline="central">standards + spec + this ticket's AC</text>
+<line class="ln" x1="205" y1="266" x2="205" y2="290" marker-end="url(#ae)"/>
+
+<rect class="bh" x="40" y="290" width="330" height="64" rx="4"/>
+<text class="ti th" x="205" y="312" text-anchor="middle" dominant-baseline="central">human approves the commit</text>
+<text class="sb sh" x="205" y="334" text-anchor="middle" dominant-baseline="central">blocking, in chat, no auto-approve</text>
+<line class="ln" x1="370" y1="322" x2="396" y2="322" marker-end="url(#ae)"/>
+<rect class="bf" x="396" y="290" width="244" height="66" rx="4"/>
+<text class="ti tf" x="518" y="312" text-anchor="middle" dominant-baseline="central">stop the whole ticket</text>
+<text class="sb sf" x="518" y="334" text-anchor="middle" dominant-baseline="central">reject · miss · AC unchecked</text>
+<line class="ln" x1="205" y1="354" x2="205" y2="378" marker-end="url(#ae)"/>
+
+<rect class="be" x="40" y="378" width="330" height="64" rx="4"/>
+<text class="ti te" x="205" y="400" text-anchor="middle" dominant-baseline="central">commit dispatch — execute</text>
+<text class="sb se" x="205" y="422" text-anchor="middle" dominant-baseline="central">git add + commit, returns hash</text>
+<line class="ln" x1="205" y1="442" x2="205" y2="466" marker-end="url(#ae)"/>
+
+<rect class="bo" x="40" y="466" width="330" height="64" rx="4"/>
+<text class="ti to" x="205" y="488" text-anchor="middle" dominant-baseline="central">4c check acceptance criteria</text>
+<text class="sb so" x="205" y="510" text-anchor="middle" dominant-baseline="central">then status: done</text>
+<line class="ln" x1="205" y1="530" x2="205" y2="554" marker-end="url(#ae)"/>
+
+<rect class="bn" x="55" y="554" width="300" height="32" rx="16"/>
+<text class="sb sn" x="205" y="570" text-anchor="middle" dominant-baseline="central">next ticket, or phase 5</text>
+
+<rect class="bo" x="40" y="612" width="12" height="12" rx="2"/>
+<text class="sb sn" x="57" y="618" dominant-baseline="central">orchestrator</text>
+<rect class="be" x="155" y="612" width="12" height="12" rx="2"/>
+<text class="sb sn" x="172" y="618" dominant-baseline="central">execute sub-agent</text>
+<rect class="bh" x="300" y="612" width="12" height="12" rx="2"/>
+<text class="sb sn" x="317" y="618" dominant-baseline="central">human gate (blocking)</text>
+<rect class="bf" x="470" y="612" width="12" height="12" rx="2"/>
+<text class="sb sn" x="487" y="618" dominant-baseline="central">failure path</text>
+</svg>

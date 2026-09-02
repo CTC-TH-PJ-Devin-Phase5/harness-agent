@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="864" viewBox="0 0 680 864" role="img">
+<title>The harness's five-phase pipeline</title>
+<desc>A top-down flow from the /build command through Phase 1 grill, Phase 2 spec, Phase 3 tickets, Phase 4 per-ticket execution and Phase 5 whole-task review, with a blocking human gate between each phase and the artifact each phase writes shown to the right.</desc>
+<style>
+text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+rect{stroke-width:1.5}
+.ti{font-size:14px;font-weight:500}
+.sb{font-size:12px;font-weight:400}
+.bo{fill:#EEEDFE;stroke:#534AB7}.to{fill:#3C3489}.so{fill:#534AB7}
+.be{fill:#E1F5EE;stroke:#0F6E56}.te{fill:#085041}.se{fill:#0F6E56}
+.bh{fill:#FAECE7;stroke:#993C1D}.th{fill:#712B13}.sh{fill:#993C1D}
+.bn{fill:#F1EFE8;stroke:#5F5E5A}.tn{fill:#444441}.sn{fill:#5F5E5A}
+.ln{stroke:#888780;stroke-width:1.5}.ah{fill:#888780}
+.bg{fill:#FFFFFF;stroke:none}
+@media (prefers-color-scheme:dark){
+.bg{fill:#22211E}
+.bo{fill:#3C3489;stroke:#AFA9EC}.to{fill:#CECBF6}.so{fill:#AFA9EC}
+.be{fill:#085041;stroke:#5DCAA5}.te{fill:#9FE1CB}.se{fill:#5DCAA5}
+.bh{fill:#712B13;stroke:#F0997B}.th{fill:#F5C4B3}.sh{fill:#F0997B}
+.bn{fill:#444441;stroke:#B4B2A9}.tn{fill:#D3D1C7}.sn{fill:#B4B2A9}
+}
+</style>
+<defs><marker id="ae" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs>
+
+<rect class="bg" x="0" y="0" width="680" height="864"/>
+
+<rect class="bn" x="50" y="40" width="300" height="32" rx="16"/>
+<text class="sb sn" x="200" y="56" text-anchor="middle" dominant-baseline="central">/build "&lt;task description&gt;"</text>
+<line class="ln" x1="200" y1="72" x2="200" y2="96" marker-end="url(#ae)"/>
+
+<rect class="bo" x="40" y="96" width="320" height="64" rx="4"/>
+<text class="ti to" x="200" y="118" text-anchor="middle" dominant-baseline="central">Phase 1 — grill</text>
+<text class="sb so" x="200" y="140" text-anchor="middle" dominant-baseline="central">interview until frontier empty</text>
+<line class="ln" x1="360" y1="128" x2="384" y2="128" marker-end="url(#ae)"/>
+<rect class="bn" x="384" y="104" width="256" height="48" rx="4"/>
+<text class="sb tn" x="512" y="122" text-anchor="middle" dominant-baseline="central">CONTEXT.md · docs/adr/</text>
+<text class="sb sn" x="512" y="140" text-anchor="middle" dominant-baseline="central">glossary and decisions</text>
+<line class="ln" x1="200" y1="160" x2="200" y2="184" marker-end="url(#ae)"/>
+
+<rect class="bh" x="50" y="184" width="300" height="32" rx="16"/>
+<text class="sb sh" x="200" y="200" text-anchor="middle" dominant-baseline="central">gate: human confirms understanding</text>
+<line class="ln" x1="200" y1="216" x2="200" y2="240" marker-end="url(#ae)"/>
+
+<rect class="bo" x="40" y="240" width="320" height="64" rx="4"/>
+<text class="ti to" x="200" y="262" text-anchor="middle" dominant-baseline="central">Phase 2 — spec</text>
+<text class="sb so" x="200" y="284" text-anchor="middle" dominant-baseline="central">synthesize, no re-interview</text>
+<line class="ln" x1="360" y1="272" x2="384" y2="272" marker-end="url(#ae)"/>
+<rect class="bn" x="384" y="248" width="256" height="48" rx="4"/>
+<text class="sb tn" x="512" y="266" text-anchor="middle" dominant-baseline="central">docs/requirements/&lt;slug&gt;/</text>
+<text class="sb sn" x="512" y="284" text-anchor="middle" dominant-baseline="central">spec.md</text>
+<line class="ln" x1="200" y1="304" x2="200" y2="328" marker-end="url(#ae)"/>
+
+<rect class="bh" x="50" y="328" width="300" height="32" rx="16"/>
+<text class="sb sh" x="200" y="344" text-anchor="middle" dominant-baseline="central">gate: spec.md written, test kinds set</text>
+<line class="ln" x1="200" y1="360" x2="200" y2="384" marker-end="url(#ae)"/>
+
+<rect class="bo" x="40" y="384" width="320" height="64" rx="4"/>
+<text class="ti to" x="200" y="406" text-anchor="middle" dominant-baseline="central">Phase 3 — tickets</text>
+<text class="sb so" x="200" y="428" text-anchor="middle" dominant-baseline="central">tracer-bullet vertical slices</text>
+<line class="ln" x1="360" y1="416" x2="384" y2="416" marker-end="url(#ae)"/>
+<rect class="bn" x="384" y="392" width="256" height="48" rx="4"/>
+<text class="sb tn" x="512" y="410" text-anchor="middle" dominant-baseline="central">tickets/&lt;NN&gt;-&lt;slug&gt;.md</text>
+<text class="sb sn" x="512" y="428" text-anchor="middle" dominant-baseline="central">each declares test kinds</text>
+<line class="ln" x1="200" y1="448" x2="200" y2="472" marker-end="url(#ae)"/>
+
+<rect class="bh" x="50" y="472" width="300" height="32" rx="16"/>
+<text class="sb sh" x="200" y="488" text-anchor="middle" dominant-baseline="central">gate: human approves the breakdown</text>
+<line class="ln" x1="200" y1="504" x2="200" y2="528" marker-end="url(#ae)"/>
+
+<rect class="be" x="40" y="528" width="320" height="64" rx="4"/>
+<text class="ti te" x="200" y="550" text-anchor="middle" dominant-baseline="central">Phase 4 — execute each ticket</text>
+<text class="sb se" x="200" y="572" text-anchor="middle" dominant-baseline="central">delegates 4a to execute</text>
+<line class="ln" x1="360" y1="560" x2="384" y2="560" marker-end="url(#ae)"/>
+<rect class="bn" x="384" y="536" width="256" height="48" rx="4"/>
+<text class="sb tn" x="512" y="554" text-anchor="middle" dominant-baseline="central">branch per ticket, commit</text>
+<text class="sb sn" x="512" y="572" text-anchor="middle" dominant-baseline="central">logs/reports/&lt;ticket&gt;.html</text>
+<line class="ln" x1="200" y1="592" x2="200" y2="616" marker-end="url(#ae)"/>
+
+<rect class="bh" x="50" y="616" width="300" height="32" rx="16"/>
+<text class="sb sh" x="200" y="632" text-anchor="middle" dominant-baseline="central">gate: every ticket's AC checked</text>
+<line class="ln" x1="200" y1="648" x2="200" y2="672" marker-end="url(#ae)"/>
+
+<rect class="bo" x="40" y="672" width="320" height="64" rx="4"/>
+<text class="ti to" x="200" y="694" text-anchor="middle" dominant-baseline="central">Phase 5 — review whole task</text>
+<text class="sb so" x="200" y="716" text-anchor="middle" dominant-baseline="central">tip branch vs spec and all AC</text>
+<line class="ln" x1="360" y1="704" x2="384" y2="704" marker-end="url(#ae)"/>
+<rect class="bn" x="384" y="680" width="256" height="48" rx="4"/>
+<text class="sb tn" x="512" y="698" text-anchor="middle" dominant-baseline="central">review.md</text>
+<text class="sb sn" x="512" y="716" text-anchor="middle" dominant-baseline="central">LEARNING.md when approved</text>
+<line class="ln" x1="200" y1="736" x2="200" y2="760" marker-end="url(#ae)"/>
+
+<rect class="bh" x="50" y="760" width="300" height="48" rx="4"/>
+<text class="ti th" x="200" y="778" text-anchor="middle" dominant-baseline="central">human approves or rejects</text>
+<text class="sb sh" x="200" y="796" text-anchor="middle" dominant-baseline="central">reject → re-run phase 4, then 5</text>
+
+<rect class="bo" x="40" y="832" width="12" height="12" rx="2"/>
+<text class="sb sn" x="57" y="838" dominant-baseline="central">orchestrator</text>
+<rect class="be" x="155" y="832" width="12" height="12" rx="2"/>
+<text class="sb sn" x="172" y="838" dominant-baseline="central">execute sub-agent</text>
+<rect class="bh" x="300" y="832" width="12" height="12" rx="2"/>
+<text class="sb sn" x="317" y="838" dominant-baseline="central">human gate (blocking)</text>
+<rect class="bn" x="470" y="832" width="12" height="12" rx="2"/>
+<text class="sb sn" x="487" y="838" dominant-baseline="central">artifact written</text>
+</svg>
