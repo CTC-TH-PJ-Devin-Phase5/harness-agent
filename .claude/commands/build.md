@@ -20,12 +20,9 @@ rediscover a mistake someone already fixed.
 
 ## Phase 1 — Grilling (blocking, you do this yourself, no sub-agent)
 
-`Read` and follow `.agents/skills/grill-with-docs/SKILL.md` (it loads
+`Read` and follow `.claude/skills/grill-with-docs/SKILL.md` (it loads
 `grilling` and `domain-modeling`) to interview the human about this task
-until requirements are genuinely clear. Nothing injects this for you:
-`loadSkillContent()` only serves sub-agents, and you have no `Bash` to call
-it with — you read the skill files yourself, like every other orchestrator
-phase.
+until requirements are genuinely clear.
 
 - **No timeout. No skip.** Always wait for a real answer.
 - This cannot be delegated to a sub-agent: sub-agents run to completion and
@@ -35,7 +32,7 @@ phase.
 
 ## Phase 2 — Spec (you do this, `to-spec`)
 
-Read and follow `.agents/skills/to-spec/SKILL.md`. Synthesize Phase 1 into
+Read and follow `.claude/skills/to-spec/SKILL.md`. Synthesize Phase 1 into
 `docs/requirements/<slug>/spec.md`. Do not re-interview; check seams with
 the human before writing. No application/production code.
 
@@ -44,7 +41,7 @@ proceeding.
 
 ## Phase 3 — Tickets (you do this, `to-tickets`)
 
-Read and follow `.agents/skills/to-tickets/SKILL.md`. Quiz the human on the
+Read and follow `.claude/skills/to-tickets/SKILL.md`. Quiz the human on the
 breakdown until they approve. Write one file per ticket under
 `docs/requirements/<slug>/tickets/<NN>-<ticket-slug>.md`. Each file:
 title, status, related spec section, acceptance criteria, Depends on,
@@ -62,34 +59,30 @@ this ticket's gate is met.
 **4a Implement** — delegate with payload
 `{ subAgent: "execute", task, context: { ticket, specPath, action: "implement" } }`.
 
-On Claude Code: write the handoff log, then use the Agent tool with
-`subagent_type: "execute"`. On other hosts: `runSubAgent()`. See
-CLAUDE.md § Delegation — you cannot call `runSubAgent()` from this thread,
-since that would require `Bash`.
+Write the handoff log, then use the Agent tool with `subagent_type:
+"execute"`. See CLAUDE.md § Delegation.
 
-The Agent tool injects **nothing** — only `runSubAgent()` does that. So your
-`task` string must tell `execute` to Read its own skills
-(`.agents/skills/implement/SKILL.md`, `tdd/SKILL.md`) and rules
-(`.claude/rules/`: coding-standard, security-common, security-backend,
-security-frontend) before it writes any code. `git-convention` isn't
-needed for this dispatch — nothing gets committed here.
+The Agent tool injects **nothing**. So your `task` string must tell
+`execute` to Read its own skills (`.claude/skills/implement/SKILL.md`,
+`tdd/SKILL.md`) and rules (`.claude/rules/`: coding-standard,
+security-common, security-backend, security-frontend) before it writes any
+code. `git-convention` isn't needed for this dispatch — nothing gets
+committed here. Also make `task` self-contained (AC copied in, relevant
+spec section, any Phase-1 prototype/reference, explicit out-of-scope) —
+see CLAUDE.md § Delegation for why a short one-liner isn't enough.
 
 `execute` creates the ticket branch (`<slug>/<NN>-<ticket-slug>`, off its
 blocker's branch or `main`), then loops at most twice:
 
 1. Implement.
-2. Run unit tests and integration tests on the host via execute's Bash,
-   recording one `test_run` telemetry row per invocation
-   (`tools/telemetry/test-run.ts`).
-3. Render the HTML report — `pnpm report:tests` → `logs/reports/<ticket>.html`
-   — and name that path in the summary it returns. Do this on failed attempts
-   too, so the human can see what broke.
-4. Both pass → stop, **leave the changes uncommitted**, return success +
-   diff summary + report path (4b). `execute` cannot pause mid-task for a
-   human answer, so it never asks for approval or commits itself — that's
-   your job next, in 4b.
-5. Fail on attempt 1/2 → fix and loop back to step 1 (one retry).
-   Fail on attempt 2/2 → stop and report failure. Do not try a third time.
+2. Run unit tests and integration tests on the host via execute's Bash.
+3. Both pass → stop, **leave the changes uncommitted**, return success +
+   diff summary + the actual test output (there is no generated report) →
+   4b. `execute` cannot pause mid-task for a human answer, so it never
+   asks for approval or commits itself — that's your job next, in 4b.
+4. Fail on attempt 1/2 → fix and loop back to step 1 (one retry).
+   Fail on attempt 2/2 → stop and report failure with the actual output.
+   Do not try a third time.
 
 `execute` does not check Acceptance Criteria and does not mark
 `Status` done.
@@ -98,10 +91,11 @@ blocker's branch or `main`), then loops at most twice:
 After `execute` reports success, load `.claude/rules/coding-standard.md`
 and the security rules, then review this ticket's branch — still
 uncommitted — against `spec.md` and this ticket's acceptance criteria
-(`code-review`). Do not skip to the next ticket. Read
-`logs/reports/<ticket>.html` too: `passed` = both unit and integration ran
-clean on the latest attempt, `incomplete` = one kind was never recorded,
-which is a failed gate, not a pass.
+(`code-review`). Do not skip to the next ticket. Check the test output
+`execute` returned and this ticket's own `## Execution log` table too:
+both unit and integration must show a pass on the latest attempt for this
+to count as tests-passing — a missing or ambiguous kind is a failed gate,
+not a pass.
 
 If the review is clean, ask the human directly in this chat for approval
 to commit — blocking, no skip, no timeout, same rule as Phase 1. Approved →
@@ -112,7 +106,9 @@ branch, per `git-convention.md`. Rejected → stop (see below); do not commit.
 
 **4c Check Acceptance Criteria** — once the commit dispatch succeeds, mark
 `- [x]` each criterion the review confirmed. Leave unmet criteria as
-`- [ ]`. Only then mark `Status` done and move to the next ticket.
+`- [ ]`. Only then mark `Status` done and move to the next ticket. Do not
+move on before all four are true: human said yes, commit hash recorded,
+AC checked to match what review confirmed, `Status` set to done.
 
 - Two failed test attempts, review finds a miss, human rejects the
   approval, or any AC still unchecked → **STOP the entire task
@@ -129,10 +125,10 @@ acceptance criteria. Confirm the `[x]` marks still match the code. The
 "final state" lives on the last-completed ticket's own branch. Write
 your findings to `docs/requirements/<slug>/review.md`.
 
-Read the whole-task rollup at `logs/reports/index.html` — one row per
-ticket. Every ticket must be `passed`. Cite the path in `review.md` and
-call out any `incomplete` row, malformed-row notice, or ticket missing from
-the rollup entirely (that one's tests were never recorded — unverified).
+Confirm every ticket's own `## Execution log` table shows a passing final
+attempt for both unit and integration tests, and cite that in `review.md`.
+Call out any ticket whose log doesn't show both passing, or whose log is
+missing entirely (that one's tests were never recorded — unverified).
 
 Present a summary to the human and ask for approve/reject. **Never
 auto-approve.**
@@ -153,14 +149,12 @@ auto-approve.**
   Phase 1 (no skip, no timeout). `execute` cannot pause mid-task for a
   human answer, which is exactly why it stops uncommitted after 4a instead
   of asking itself.
-- Never call a provider adapter directly. On non-Claude-Code hosts every
-  delegation goes through `tools/subagent-adapter/interface.ts`'s
-  `runSubAgent()`; on Claude Code it goes through the Agent tool with
-  `subagent_type: "execute"`.
+- Every delegation goes through the Agent tool with `subagent_type:
+  "execute"`.
 - Before every sub-agent call — there are two per ticket, implement and
-  commit — the exact `{ subAgent, task, context }` payload is written to
-  `docs/requirements/<slug>/handoffs/<ISO-timestamp>-<subAgent>.json`.
-  `runSubAgent()` does this itself; on the Agent-tool path, write
-  that file first with `Write`.
+  commit — write the exact `{ subAgent, task, context }` payload yourself
+  with `Write` to
+  `docs/requirements/<slug>/handoffs/<ISO-timestamp>-<subAgent>.json`
+  before making the call.
 - Approval is always manual, always blocking. There is no path in this
   harness that commits code without an explicit human yes.
