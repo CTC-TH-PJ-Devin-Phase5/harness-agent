@@ -51,7 +51,8 @@ Phase 5 — Review (whole task) vs spec + every ticket's AC
            docs/requirements/<slug>/review.md
   ▼
 You approve/reject (manual, always)
-  ├─ Approve → done, lessons appended to LEARNING.md
+  ├─ Approve → lessons appended to LEARNING.md, then the orchestrator
+  │            recommends /create-pr (push <slug> + PR vs main — you run it)
   └─ Reject  → uncheck implicated AC, re-run Phase 4 for those tickets only,
                loop back to Phase 5
 ```

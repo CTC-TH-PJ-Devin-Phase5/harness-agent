@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="680" height="864" viewBox="0 0 680 864" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="888" viewBox="0 0 680 888" role="img">
 <title>The harness's five-phase pipeline</title>
 <desc>A top-down flow from the /build command through Phase 1 grill, Phase 2 spec, Phase 3 tickets, Phase 4 per-ticket execution and Phase 5 whole-task review, with a blocking human gate between each phase and the artifact each phase writes shown to the right.</desc>
 <style>
@@ -22,7 +22,7 @@ rect{stroke-width:1.5}
 </style>
 <defs><marker id="ae" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker></defs>
 
-<rect class="bg" x="0" y="0" width="680" height="864"/>
+<rect class="bg" x="0" y="0" width="680" height="888"/>
 
 <rect class="bn" x="50" y="40" width="300" height="32" rx="16"/>
 <text class="sb sn" x="200" y="56" text-anchor="middle" dominant-baseline="central">/build "&lt;task description&gt;"</text>
@@ -89,16 +89,17 @@ rect{stroke-width:1.5}
 <text class="sb sn" x="512" y="716" text-anchor="middle" dominant-baseline="central">LEARNING.md when approved</text>
 <line class="ln" x1="200" y1="736" x2="200" y2="760" marker-end="url(#ae)"/>
 
-<rect class="bh" x="50" y="760" width="300" height="48" rx="4"/>
+<rect class="bh" x="50" y="760" width="300" height="66" rx="4"/>
 <text class="ti th" x="200" y="778" text-anchor="middle" dominant-baseline="central">human approves or rejects</text>
-<text class="sb sh" x="200" y="796" text-anchor="middle" dominant-baseline="central">reject → re-run phase 4, then 5</text>
+<text class="sb sh" x="200" y="796" text-anchor="middle" dominant-baseline="central">approve → LEARNING.md, then /create-pr</text>
+<text class="sb sh" x="200" y="814" text-anchor="middle" dominant-baseline="central">reject → re-run phase 4, then 5</text>
 
-<rect class="bo" x="40" y="832" width="12" height="12" rx="2"/>
-<text class="sb sn" x="57" y="838" dominant-baseline="central">orchestrator</text>
-<rect class="be" x="155" y="832" width="12" height="12" rx="2"/>
-<text class="sb sn" x="172" y="838" dominant-baseline="central">execute sub-agent</text>
-<rect class="bh" x="300" y="832" width="12" height="12" rx="2"/>
-<text class="sb sn" x="317" y="838" dominant-baseline="central">human gate (blocking)</text>
-<rect class="bn" x="470" y="832" width="12" height="12" rx="2"/>
-<text class="sb sn" x="487" y="838" dominant-baseline="central">artifact written</text>
+<rect class="bo" x="40" y="856" width="12" height="12" rx="2"/>
+<text class="sb sn" x="57" y="862" dominant-baseline="central">orchestrator</text>
+<rect class="be" x="155" y="856" width="12" height="12" rx="2"/>
+<text class="sb sn" x="172" y="862" dominant-baseline="central">execute sub-agent</text>
+<rect class="bh" x="300" y="856" width="12" height="12" rx="2"/>
+<text class="sb sn" x="317" y="862" dominant-baseline="central">human gate (blocking)</text>
+<rect class="bn" x="470" y="856" width="12" height="12" rx="2"/>
+<text class="sb sn" x="487" y="862" dominant-baseline="central">artifact written</text>
 </svg>

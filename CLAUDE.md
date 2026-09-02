@@ -103,8 +103,14 @@ Confirm every ticket's own `## Execution log` table and `logs/reports/<ticket>.h
 
 Then check the declarations themselves across the whole task: the set of tickets declaring `e2e` must still satisfy the criterion in the spec's `## Testing Decisions`. A ticket that should have declared `e2e` and didn't is the same unverified result as one whose `e2e` never ran — the flow was never driven end to end either way — so flag it the same way rather than treating a green report on a narrower declaration as a pass.
 
-- Approve → append a dated lessons section to `LEARNING.md`. Stop.
+- Approve → append a dated lessons section to `LEARNING.md`, then **recommend opening the PR with the `create-pr` skill** (see below). Stop.
 - Reject → uncheck the implicated AC, re-run Phase 4 for those tickets only, then Phase 5 again.
+
+### After approval — recommend the PR, don't open it
+
+The harness ends at an approved task branch; it does not merge. So once `LEARNING.md` is written, close out by pointing the human at `.claude/skills/create-pr/SKILL.md`: name the task branch `<slug>`, the target (`main`), the commit count (one per ticket), and `docs/requirements/<slug>/review.md` as the material for the PR body. Say that steps 1–3 of that skill (review the diff, validate, commit) are already satisfied — Phase 4 committed every ticket after its own approval gate and the working tree is clean — so only its steps 4–5 remain: push the branch and open the PR against `main`.
+
+**Recommending is where your job ends. Do not run it yourself**: `git push` is denied to you, opening a PR publishes outward-facing content, and merging is out of scope for this harness (`create-pr` § Rules forbids it too). The human invokes `/create-pr` themselves, or opens the PR by hand — either way that is a fresh decision they make after approving, not something the approval already authorized.
 
 ## Delegation
 
@@ -154,6 +160,7 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 - `.claude/skills/to-spec/SKILL.md` — Phase 2 spec template and process.
 - `.claude/skills/to-tickets/SKILL.md` — Phase 3 vertical slices and ticket template.
 - `.claude/skills/code-review/SKILL.md` — Phase 4b per-ticket review and Phase 5 whole-task review.
+- `.claude/skills/create-pr/SKILL.md` — after Phase 5 approval: what you recommend, and what the human runs. You never run it.
 - `docs/requirements/<slug>/handoffs/` — exact context sent to each sub-agent.
 - `.claude/harness.json` — `execution.mode`, `permissions` (mirrors `execute.md`'s `tools:` frontmatter), `approval.autoApprove` (must stay `false`). (Claude Code's own settings live in `.claude/settings.json`.)
 - `logs/reports/<ticket>.html` — per-ticket test report, written directly by `execute` (no renderer script). Git-ignored per `git-convention.md` §5; you Read it in 4b, `execute` writes it in 4a.

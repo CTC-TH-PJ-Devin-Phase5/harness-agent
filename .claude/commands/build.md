@@ -179,7 +179,14 @@ Present a summary to the human and ask for approve/reject. **Never
 auto-approve.**
 
 - **Approve** → task is done. Append a dated lessons section to
-  `LEARNING.md` (see its format). Stop.
+  `LEARNING.md` (see its format). Then **recommend the PR**: point the
+  human at `.claude/skills/create-pr/SKILL.md`, naming the task branch
+  `<slug>`, the target `main`, and `docs/requirements/<slug>/review.md` as
+  the PR body's material. That skill's steps 1–3 (review, validate,
+  commit) are already satisfied by Phase 4, so only push + open-PR remain.
+  **Do not run it yourself** — `git push` is denied to you, a PR is
+  outward-facing, and this harness never merges. The human invokes
+  `/create-pr` or opens the PR by hand. Then stop.
 - **Reject** → uncheck the implicated AC, re-run Phase 4 for those
   tickets only, then loop back to Phase 5.
 
