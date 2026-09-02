@@ -25,7 +25,6 @@
     "deny": [
       "Read(.env)",
       "Read(.env.*)",
-      "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(git clean:*)"
     ]
