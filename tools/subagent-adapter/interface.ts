@@ -91,8 +91,9 @@ export interface AdapterCapabilities {
   /**
    * True only if this adapter runs a real multi-turn agent loop in which the
    * model can actually invoke tools (read/write files, run tests via Bash,
-   * call `mcp__approval__request`) and the adapter feeds results back until
-   * the model stops.
+   * stop uncommitted and hand control back for the orchestrator's own
+   * human approval ask) and the adapter feeds results back until the model
+   * stops.
    *
    * A plain one-shot chat/completion call is `false`: it can describe an
    * implementation but cannot perform one. See the guard in `runSubAgent()`.
@@ -111,11 +112,12 @@ export interface ProviderAdapter {
 
 /**
  * Sub-agents whose job is impossible without real tool use. `execute` must
- * create a branch, edit files, run unit + integration tests, block on the
- * human approval gate, and commit — none of which a single-turn text
+ * create a branch, edit files, run unit + integration tests, and (on a
+ * later, separate dispatch) commit — none of which a single-turn text
  * response can do. Dispatching one to a `toolUse: false` adapter would
- * return prose that *looks* like success and silently bypass the approval
- * gate, so `runSubAgent()` refuses instead.
+ * return prose that *looks* like success and silently skip all of that,
+ * including the commit step that only ever runs after the orchestrator's
+ * own human approval ask succeeds, so `runSubAgent()` refuses instead.
  */
 export const SUBAGENTS_REQUIRING_TOOL_USE: ReadonlySet<SubAgentName> = new Set<SubAgentName>([
   "execute",
@@ -225,7 +227,7 @@ export async function runSubAgent(
     throw new Error(
       `Sub-agent "${request.subAgent}" requires an adapter that can invoke tools, but ` +
         `provider "${providerName}" is a single-turn adapter (capabilities.toolUse === false). ` +
-        `It cannot create a branch, edit files, run tests, or block on the approval gate — ` +
+        `It cannot create a branch, edit files, run tests, or commit on a later dispatch — ` +
         `dispatching to it would return prose that looks like success and bypass the gate. ` +
         `Either dispatch through a tool-capable host (on Claude Code: the Agent tool with ` +
         `subagent_type "execute" — see CLAUDE.md § Delegation), or implement a real ` +

@@ -12,7 +12,8 @@
  * can *describe* an implementation; it cannot perform one. It therefore
  * cannot run the `execute` sub-agent, and `runSubAgent()` refuses that
  * pairing rather than returning a prose response that looks like success
- * and silently bypasses the approval gate.
+ * and silently skips implementation, testing, and the commit dispatch that
+ * only ever runs after the orchestrator's own human approval ask succeeds.
  *
  * Two ways to actually dispatch a tool-capable `execute`:
  *   1. On Claude Code: the native Agent tool with subagent_type "execute",

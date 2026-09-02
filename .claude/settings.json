@@ -31,10 +31,6 @@
     ]
   },
   "mcpServers": {
-    "approval": {
-      "command": "pnpm",
-      "args": ["run", "approval-mcp"]
-    },
     "telemetry": {
       "command": "pnpm",
       "args": ["run", "telemetry-mcp"]

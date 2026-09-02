@@ -22,14 +22,16 @@ Phase 3 — Tickets (`to-tickets`) — orchestrator ↔ you (approve the breakdo
            docs/requirements/<slug>/tickets/<NN>-<slug>.md (one file per ticket)
   ▼
 Phase 4 — per ticket, dependency order:
-           4a  execute sub-agent (loop, max 2 attempts)
+           4a  execute sub-agent, implement dispatch (loop, max 2 attempts)
                handoff log → checkout/create ticket branch →
                implement → unit tests + integration tests (host Bash)
-                 pass → approval gate → commit → 4b
+                 pass → stop, uncommitted → return summary + report → 4b
                  fail attempt 1 → fix, loop once
                  fail attempt 2 → STOP, ask you
            4b  orchestrator loads `.claude/rules/` (coding-standard + security)
                then reviews this ticket (code-review vs spec + this ticket's AC)
+               then asks you, in chat, for approval to commit (blocking, no skip)
+               approved → handoff log → execute, commit dispatch → commit
            4c  orchestrator checks `- [x]` on confirmed AC, then Status: done
            rejected approval / unmet AC → STOP, ask you
   ▼
@@ -101,7 +103,9 @@ Markdown: every skill in `SKILLS_BY_SUBAGENT` and rule in
 `.claude/agents/<name>.md` which itself names every one of those skill and
 rule files (the Agent-tool path injects nothing, so a sub-agent can only
 load what its own role file points at), the report output stays git-ignored,
-and `approval.autoApprove` is still `false`.
+and `approval.autoApprove` is still `false` — the config flag that says no
+setting may pre-approve a commit; the human approval ask itself now happens
+in the orchestrator's own chat rather than through a tool.
 It warns (does not fail) when the configured provider is a single-turn stub,
 which is the state of a fresh template. Both run in `.github/workflows/ci.yml`.
 
@@ -140,12 +144,18 @@ the top of `.claude/agents/execute.md` instructs. `pnpm check:harness` fails if
 that file stops naming any of them, because a sub-agent silently running
 without its rules looks identical to one following them.
 
+`execute` cannot pause mid-task for a human answer, so the orchestrator
+dispatches it **twice per ticket**: once to implement and test (stopping
+with the changes uncommitted), and again — only after the orchestrator has
+reviewed the diff and asked the human for approval directly in chat — to
+commit. See CLAUDE.md § Phase 4b.
+
 **Adapter status:** all four adapters (`claude`, `codex`, `deepseek`, `gemini`)
 are single-turn reference stubs declaring `capabilities.toolUse: false`. A single
-chat call cannot branch, edit files, run tests, or block on the approval gate, so
-`runSubAgent()` refuses to pair one with `execute` instead of returning prose
-that looks like success and silently bypasses the gate. To route `execute`
-through a provider, give that adapter a real multi-turn tool loop and set
+chat call cannot branch, edit files, run tests, or commit, so `runSubAgent()`
+refuses to pair one with `execute` instead of returning prose that looks like
+success and silently skips all of that. To route `execute` through a
+provider, give that adapter a real multi-turn tool loop and set
 `capabilities.toolUse = true`.
 
 ## Multi-provider sub-agents
@@ -180,7 +190,6 @@ and `tools/subagent-adapter/`.
 | `logs/sessions/` | Raw per-session telemetry (debugging only) |
 | `logs/handoffs/` | Fallback handoff logs when the task slug cannot be inferred |
 | `LEARNING.md` | Durable, curated lessons carried across runs |
-| `tools/approval-mcp/` | Blocking human approval gate (FIFO queue) |
 | `tools/subagent-adapter/` | Provider-agnostic sub-agent dispatch + skill injection + handoff logs |
 | `tools/telemetry/` | Session event recording |
 | `logs/reports/` | Generated Phase 4 HTML test reports (git-ignored) |

@@ -14,11 +14,10 @@ pnpm install
 # Claude Code logged in (`claude` on PATH). Docker is not required.
 ```
 
-Start the long-running MCP servers in separate terminals (or under your
+Start the long-running MCP server in a separate terminal (or under your
 MCP client's process manager):
 
 ```bash
-pnpm run approval-mcp
 pnpm run telemetry-mcp
 ```
 
@@ -45,10 +44,14 @@ pnpm run telemetry-mcp
       attempt must show up as a row with its failure message, not vanish.
       Then check the rollup at `logs/reports/index.html`. A ticket where
       only unit tests were recorded must read `incomplete`, never `passed`
-   - c. you are prompted at an **approval gate** before anything is
-      committed, the summary names the report path, and the process visibly
-      blocks until you answer
-   - d. answering "n" (reject) does **not** commit and is reported back
+   - c. after `execute` returns success, the *orchestrator* — not
+      `execute` — reviews the still-uncommitted diff and then asks you
+      directly in chat for approval before anything is committed; the
+      summary names the report path, and the ask visibly blocks until you
+      answer
+   - d. answering "n" (reject) does **not** dispatch a commit call to
+      `execute`, and the rejection is reported back / logged as the stop
+      reason
    - e. that ticket's own file under `tickets/` now has a new row in its
       `## Execution log` table naming the `execute` sub-agent, the
       skill(s) it used (`implement`, `tdd`), the specific rule/step it

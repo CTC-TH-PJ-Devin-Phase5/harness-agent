@@ -7,7 +7,7 @@
  *
  * !! SINGLE-TURN REFERENCE STUB — `capabilities.toolUse` is false. !!
  * One chat/completions call, no `tools`, no loop: it cannot edit files, run
- * tests, or block on the approval gate, so `runSubAgent()` refuses to pair
+ * tests, or commit on a later dispatch, so `runSubAgent()` refuses to pair
  * it with `execute`. To use it for real work, add a multi-turn tool loop
  * and set capabilities.toolUse = true.
  */

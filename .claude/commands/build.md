@@ -60,7 +60,7 @@ process tickets in dependency order. Do not start the next ticket until
 this ticket's gate is met.
 
 **4a Implement** — delegate with payload
-`{ subAgent: "execute", task, context: { ticket, specPath } }`.
+`{ subAgent: "execute", task, context: { ticket, specPath, action: "implement" } }`.
 
 On Claude Code: write the handoff log, then use the Agent tool with
 `subagent_type: "execute"`. On other hosts: `runSubAgent()`. See
@@ -70,8 +70,9 @@ since that would require `Bash`.
 The Agent tool injects **nothing** — only `runSubAgent()` does that. So your
 `task` string must tell `execute` to Read its own skills
 (`.agents/skills/implement/SKILL.md`, `tdd/SKILL.md`) and rules
-(`.claude/rules/`: coding-standard, git-convention, security-common,
-security-backend, security-frontend) before it writes any code.
+(`.claude/rules/`: coding-standard, security-common, security-backend,
+security-frontend) before it writes any code. `git-convention` isn't
+needed for this dispatch — nothing gets committed here.
 
 `execute` creates the ticket branch (`<slug>/<NN>-<ticket-slug>`, off its
 blocker's branch or `main`), then loops at most twice:
@@ -81,30 +82,41 @@ blocker's branch or `main`), then loops at most twice:
    recording one `test_run` telemetry row per invocation
    (`tools/telemetry/test-run.ts`).
 3. Render the HTML report — `pnpm report:tests` → `logs/reports/<ticket>.html`
-   — and name that path in the approval summary. Do this on failed attempts
+   — and name that path in the summary it returns. Do this on failed attempts
    too, so the human can see what broke.
-4. Both pass → approval gate → commit → return success + report path (4b).
+4. Both pass → stop, **leave the changes uncommitted**, return success +
+   diff summary + report path (4b). `execute` cannot pause mid-task for a
+   human answer, so it never asks for approval or commits itself — that's
+   your job next, in 4b.
 5. Fail on attempt 1/2 → fix and loop back to step 1 (one retry).
    Fail on attempt 2/2 → stop and report failure. Do not try a third time.
 
 `execute` does not check Acceptance Criteria and does not mark
 `Status` done.
 
-**4b Review this ticket** — you do this. After `execute` reports success,
-load `.claude/rules/coding-standard.md` and the security rules, then
-review this ticket's branch against `spec.md` and this ticket's
-acceptance criteria (`code-review`). Do not skip to the next ticket.
-Read `logs/reports/<ticket>.html` too: `passed` = both unit and integration
-ran clean on the latest attempt, `incomplete` = one kind was never recorded,
+**4b Review this ticket, then the human approval gate** — you do this.
+After `execute` reports success, load `.claude/rules/coding-standard.md`
+and the security rules, then review this ticket's branch — still
+uncommitted — against `spec.md` and this ticket's acceptance criteria
+(`code-review`). Do not skip to the next ticket. Read
+`logs/reports/<ticket>.html` too: `passed` = both unit and integration ran
+clean on the latest attempt, `incomplete` = one kind was never recorded,
 which is a failed gate, not a pass.
 
-**4c Check Acceptance Criteria** — in that ticket file, mark `- [x]` each
-criterion the review confirms. Leave unmet criteria as `- [ ]`. Only then
-mark `Status` done and move to the next ticket.
+If the review is clean, ask the human directly in this chat for approval
+to commit — blocking, no skip, no timeout, same rule as Phase 1. Approved →
+write a new handoff log and dispatch `execute` again with
+`{ subAgent: "execute", task, context: { ticket, specPath, action: "commit", commitSummary } }`;
+this second call only runs `git add` + `git commit` on the already-checked-out
+branch, per `git-convention.md`. Rejected → stop (see below); do not commit.
 
-- Two failed test attempts, approval rejected, review finds a miss, or
-  any AC still unchecked → **STOP the entire task immediately.** Tell the
-  human which ticket/criteria and why, and wait.
+**4c Check Acceptance Criteria** — once the commit dispatch succeeds, mark
+`- [x]` each criterion the review confirmed. Leave unmet criteria as
+`- [ ]`. Only then mark `Status` done and move to the next ticket.
+
+- Two failed test attempts, review finds a miss, human rejects the
+  approval, or any AC still unchecked → **STOP the entire task
+  immediately.** Tell the human which ticket/criteria and why, and wait.
 
 The tip of the work-so-far lives on the last completed ticket's branch,
 not on `main`.
@@ -132,17 +144,21 @@ auto-approve.**
 
 ## Constraints, repeated because they matter
 
-- You (the orchestrator) never write code, never commit, and never call
-  `mcp__approval__request` — those belong to the `execute` sub-agent only.
-  You do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/
-  `merge-base`) because Phase 4b/5 review is your job and needs the diff;
-  `git push`/`reset --hard`/`clean` are denied.
+- You (the orchestrator) never write code and never commit — that belongs
+  to the `execute` sub-agent only. You do hold read-only git (`git diff`/
+  `log`/`show`/`rev-parse`/`merge-base`) because Phase 4b/5 review is your
+  job and needs the diff; `git push`/`reset --hard`/`clean` are denied.
+- The human approval gate is yours to run, not a tool call: ask directly
+  in this chat, in 4b, and block for a real answer — the same rule as
+  Phase 1 (no skip, no timeout). `execute` cannot pause mid-task for a
+  human answer, which is exactly why it stops uncommitted after 4a instead
+  of asking itself.
 - Never call a provider adapter directly. On non-Claude-Code hosts every
   delegation goes through `tools/subagent-adapter/interface.ts`'s
   `runSubAgent()`; on Claude Code it goes through the Agent tool with
   `subagent_type: "execute"`.
-- Before every sub-agent call, the exact `{ subAgent, task, context }`
-  payload is written to
+- Before every sub-agent call — there are two per ticket, implement and
+  commit — the exact `{ subAgent, task, context }` payload is written to
   `docs/requirements/<slug>/handoffs/<ISO-timestamp>-<subAgent>.json`.
   `runSubAgent()` does this itself; on the Agent-tool path, write
   that file first with `Write`.

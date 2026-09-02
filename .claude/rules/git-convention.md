@@ -90,9 +90,10 @@ reason. When present:
   (`<slug>/<NN>-<ticket-slug>`, created per `.claude/agents/execute.md`'s
   branch-per-ticket constraint) — `main` only gets touched by whatever merges these
   branches later, which this harness does not automate yet.
-- Only commit after the human has approved at the `mcp__approval__request` gate — see
-  CLAUDE.md's Orchestrator Rules and `.claude/agents/execute.md`'s approval-gate
-  constraint. No commit in this harness happens without that explicit approval.
+- Only commit after the human has approved — the orchestrator asks directly in its
+  own chat (CLAUDE.md § Phase 4b) and only then dispatches `execute` with
+  `context.action: "commit"` (see `.claude/agents/execute.md`'s two dispatch
+  modes). No commit in this harness happens without that explicit approval.
 
 ---
 
