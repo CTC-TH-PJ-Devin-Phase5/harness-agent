@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+
+      "Write(CONTEXT.md)",
+      "Edit(CONTEXT.md)",
+      "Write(docs/adr/**)",
+      "Edit(docs/adr/**)",
+      "Write(docs/requirements/**)",
+      "Edit(docs/requirements/**)",
+      "Write(logs/handoffs/**)",
+      "Edit(LEARNING.md)",
+
+      "Bash(git status:*)",
+      "Bash(git branch:*)",
+      "Bash(git log:*)",
+      "Bash(git show:*)",
+      "Bash(git diff:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(git merge-base:*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)"
+    ]
+  },
+  "mcpServers": {
+    "approval": {
+      "command": "pnpm",
+      "args": ["run", "approval-mcp"]
+    },
+    "telemetry": {
+      "command": "pnpm",
+      "args": ["run", "telemetry-mcp"]
+    }
+  }
+}

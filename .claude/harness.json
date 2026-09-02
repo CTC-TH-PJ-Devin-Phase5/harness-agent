@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "execute": {
+      "allow": [
+        "Read",
+        "Write",
+        "Edit",
+        "Bash",
+        "mcp__approval__request",
+        "mcp__telemetry__record"
+      ]
+    }
+  },
+  "execution": {
+    "mode": "sequential",
+    "max_parallel": 1
+  },
+  "subagents": {
+    "execute": { "provider": "claude" }
+  },
+  "approval": {
+    "autoApprove": false
+  }
+}

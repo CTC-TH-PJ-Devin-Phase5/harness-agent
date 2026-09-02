@@ -1,0 +1,27 @@
+{
+  "name": "agent-harness-template",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Orchestrator + multi-provider sub-agent pipeline template for gated AI-assisted development.",
+  "type": "commonjs",
+  "scripts": {
+    "sync-skills": "./scripts/sync-skills.sh",
+    "approval-mcp": "node -r ts-node/register tools/approval-mcp/server.ts",
+    "telemetry-mcp": "node -r ts-node/register tools/telemetry/server.ts",
+    "check:harness": "node -r ts-node/register scripts/check-harness.ts",
+    "report:tests": "node -r ts-node/register scripts/render-test-report.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.5.0"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.9.0+sha512.bd682d5d03fe525ef7c9fd6780c6884d1e756ac4c9c9fe00c538782824310dcf90e3ddc4f53835f06dfaebd5085e41855e0bcbb3b60de2ac5bbab89e5036f03b"
+}
