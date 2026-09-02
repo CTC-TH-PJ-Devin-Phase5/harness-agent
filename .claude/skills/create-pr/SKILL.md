@@ -7,6 +7,20 @@
 
 Prepare completed work for code review by committing changes, pushing the current branch, and creating a Pull Request.
 
+## Where this fits in the harness
+
+This is the step **after** the harness, not part of it. The orchestrator recommends it once the human approves Phase 5 (CLAUDE.md § Phase 5) and stops there — it never runs this skill itself, because `git push` is denied to it and a PR is outward-facing. **A human invokes this.**
+
+Invoked that way, steps 1–3 below are already satisfied and should come out as no-ops:
+
+- the current branch is the task branch `<slug>`, carrying one commit per completed ticket;
+- each of those commits already passed its own review and explicit human approval in Phase 4b, and already follows `git-convention.md`;
+- every ticket's declared `Test kinds` already passed on its final attempt, recorded in the ticket's `## Execution log` and `logs/reports/<ticket>.html`.
+
+So confirm them rather than redoing them (a dirty working tree or an unexpected commit means something is wrong — stop and say so), then do steps 4–5. Build the PR body from `docs/requirements/<slug>/review.md` plus `spec.md`, and cite the ticket files for what each commit did.
+
+Outside `/build` — an ordinary branch with no harness artifacts — run all five steps as written, with `sdlc-checklist` as the pre-PR gate.
+
 ## Workflow
 
 1. Review current changes:

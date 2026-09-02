@@ -96,8 +96,9 @@ plus the command for each — and for `e2e`, how to bring the environment
 up — and explicit out-of-scope) — see CLAUDE.md § Delegation for why a
 short one-liner isn't enough.
 
-`execute` creates the ticket branch (`<slug>/<NN>-<ticket-slug>`, off its
-blocker's branch or `main`), then loops at most twice:
+`execute` creates or checks out **the task branch** — one branch per task,
+named `<slug>`, cut off `main` by the first ticket and reused by every
+ticket after it — then loops at most twice:
 
 1. Implement.
 2. Run every kind in this ticket's `Test kinds` on the host via execute's
@@ -120,9 +121,10 @@ and does not edit `Test kinds`.
 
 **4b Review this ticket, then the human approval gate** — you do this.
 After `execute` reports success, load `.claude/rules/coding-standard.md`
-and the security rules, then review this ticket's branch — still
-uncommitted — against `spec.md` and this ticket's acceptance criteria
-(`code-review`). Do not skip to the next ticket. Read
+and the security rules, then review this ticket's own uncommitted changes
+on the task branch — fixed point `git diff HEAD`, since every earlier
+ticket is already committed there — against `spec.md` and this ticket's
+acceptance criteria (`code-review`). Do not skip to the next ticket. Read
 `logs/reports/<ticket>.html` (the path `execute` returned) and this
 ticket's own `## Execution log` table too: **every kind this ticket
 declares in `Test kinds`** must show a pass on the latest attempt for this
@@ -139,7 +141,7 @@ to commit — blocking, no skip, no timeout, same rule as Phase 1. Approved →
 write a new handoff log and dispatch `execute` again with
 `{ subAgent: "execute", task, context: { ticket, specPath, action: "commit", commitSummary } }`;
 this second call only runs `git add` + `git commit` on the already-checked-out
-branch, per `git-convention.md`. Rejected → stop (see below); do not commit.
+task branch, per `git-convention.md`. Rejected → stop (see below); do not commit.
 
 **4c Check Acceptance Criteria** — once the commit dispatch succeeds, mark
 `- [x]` each criterion the review confirmed. Leave unmet criteria as
@@ -151,15 +153,16 @@ AC checked to match what review confirmed, `Status` set to done.
   approval, or any AC still unchecked → **STOP the entire task
   immediately.** Tell the human which ticket/criteria and why, and wait.
 
-The tip of the work-so-far lives on the last completed ticket's branch,
-not on `main`.
+The tip of the work-so-far lives on the task branch `<slug>` — one commit
+per completed ticket — not on `main`.
 
 ## Phase 5 — Review (whole task, you do this yourself)
 
 Once every ticket has its AC checked, use the `code-review` skill
 content to compare the final state against `spec.md` + every ticket's
 acceptance criteria. Confirm the `[x]` marks still match the code. The
-"final state" lives on the last-completed ticket's own branch. Write
+"final state" is the task branch `<slug>` (fixed point `git diff
+main...HEAD`). Write
 your findings to `docs/requirements/<slug>/review.md`.
 
 Confirm every ticket's own `## Execution log` table and
@@ -176,7 +179,14 @@ Present a summary to the human and ask for approve/reject. **Never
 auto-approve.**
 
 - **Approve** → task is done. Append a dated lessons section to
-  `LEARNING.md` (see its format). Stop.
+  `LEARNING.md` (see its format). Then **recommend the PR**: point the
+  human at `.claude/skills/create-pr/SKILL.md`, naming the task branch
+  `<slug>`, the target `main`, and `docs/requirements/<slug>/review.md` as
+  the PR body's material. That skill's steps 1–3 (review, validate,
+  commit) are already satisfied by Phase 4, so only push + open-PR remain.
+  **Do not run it yourself** — `git push` is denied to you, a PR is
+  outward-facing, and this harness never merges. The human invokes
+  `/create-pr` or opens the PR by hand. Then stop.
 - **Reject** → uncheck the implicated AC, re-run Phase 4 for those
   tickets only, then loop back to Phase 5.
 

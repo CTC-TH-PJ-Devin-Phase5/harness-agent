@@ -35,7 +35,7 @@ Phase 3 — Tickets (`to-tickets`) — orchestrator ↔ you (approve the breakdo
   ▼
 Phase 4 — per ticket, dependency order:
            4a  execute sub-agent, implement dispatch (loop, max 2 attempts)
-               handoff log → checkout/create ticket branch →
+               handoff log → checkout/create the task branch <slug> →
                implement → run every kind in `Test kinds` (host Bash)
                  pass → stop, uncommitted → return summary + test output → 4b
                  fail attempt 1 → fix, loop once
@@ -51,7 +51,8 @@ Phase 5 — Review (whole task) vs spec + every ticket's AC
            docs/requirements/<slug>/review.md
   ▼
 You approve/reject (manual, always)
-  ├─ Approve → done, lessons appended to LEARNING.md
+  ├─ Approve → lessons appended to LEARNING.md, then the orchestrator
+  │            recommends /create-pr (push <slug> + PR vs main — you run it)
   └─ Reject  → uncheck implicated AC, re-run Phase 4 for those tickets only,
                loop back to Phase 5
 ```
@@ -64,11 +65,16 @@ directly and keep it in step with `CLAUDE.md` when a phase or gate changes).
 
 ## Setup
 
-Phase 4 is branch-per-ticket: `execute` runs `git checkout -b <slug>/<NN>-<ticket-slug> <base>`
-where `<base>` is `main` or a blocking ticket's branch. That needs a git repo
-whose `main` already has **at least one commit** — `git init` alone leaves an
-unborn `main` that nothing can branch off, so the first commit is the part
-that actually matters.
+Phase 4 is branch-per-**task**, not per ticket: the first ticket runs
+`git checkout -b <slug> main` and every later ticket in the task just checks
+that same branch out, landing one commit each. So a task with eight tickets
+produces one branch and eight commits, and the review fixed points fall out of
+that — `git diff HEAD` for a single ticket in 4b (earlier tickets are already
+committed), `git diff main...HEAD` for the whole task in Phase 5.
+
+That needs a git repo whose `main` already has **at least one commit** —
+`git init` alone leaves an unborn `main` that nothing can branch off, so the
+first commit is the part that actually matters.
 
 Starting a new project from this template:
 
