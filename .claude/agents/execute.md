@@ -147,8 +147,8 @@ two disagree. They are the same list as `RULES_BY_SUBAGENT["execute"]` in
   header row below if an older ticket file predates this convention):
 
   ```
-  | Attempt | Agent | Skill(s) | Rule/step followed | What was done | Outcome |
-  |---|---|---|---|---|---|
+  | Attempt | Agent | Skill(s) | Source files read | Rule/step followed | What was done | Outcome |
+  |---|---|---|---|---|---|---|
   ```
 
   - **Attempt** — `1/2` or `2/2`, matching the bump you make to the
@@ -156,6 +156,19 @@ two disagree. They are the same list as `RULES_BY_SUBAGENT["execute"]` in
   - **Agent** — `execute (Loop Engineer)`.
   - **Skill(s)** — which skill(s) you actually loaded for this run
     (`implement`, plus `tdd` when you used test-first guidance).
+  - **Source files read** — the exact repo-relative paths you actually
+    `Read` this attempt before writing anything — not the ones you were
+    merely told to read. On an implement-mode attempt that's normally
+    `.agents/skills/implement/SKILL.md`, `.agents/skills/tdd/SKILL.md`,
+    `.claude/rules/coding-standard.md`, `.claude/rules/security-common.md`,
+    `.claude/rules/security-backend.md`,
+    `.claude/rules/security-frontend.md`; on a commit-mode dispatch it's
+    just `.claude/rules/git-convention.md`. If your prompt already had
+    skill/rule content injected (the `runSubAgent()` path, not the
+    Agent-tool default), list what was injected instead of a path — do
+    not leave this blank either way. This is the one field that lets the
+    orchestrator tell "loaded its rules" apart from "was told to and
+    didn't" without re-deriving it from your prose.
   - **Rule/step followed** — the specific rule/step from that skill you
     actually followed this attempt (e.g. `implement`'s prefactor-first
     step, or `tdd`'s red-green-refactor cycle) — not just the skill's

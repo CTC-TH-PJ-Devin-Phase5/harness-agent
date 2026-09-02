@@ -14,6 +14,6 @@
 
 <!-- Appended by the execute sub-agent (Phase 4) after every attempt, one row per attempt. -->
 
-| Attempt | Agent | Skill(s) | Rule/step followed | What was done | Outcome |
-|---|---|---|---|---|---|
+| Attempt | Agent | Skill(s) | Source files read | Rule/step followed | What was done | Outcome |
+|---|---|---|---|---|---|---|
 

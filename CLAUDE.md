@@ -77,7 +77,15 @@ If the review is clean, the human approval gate is yours to run, directly in thi
 
 Once the commit dispatch above succeeds, mark `- [x]` each criterion your review confirmed in that ticket file. Leave unmet criteria as `- [ ]`. Only then mark `Status` done.
 
-- All AC checked, review clean, commit succeeded → next ticket.
+**Hard stop — do not dispatch the next ticket's implement call until all four are true:**
+1. The human gave an explicit yes to the approval ask in 4b, in this chat, for this ticket.
+2. The commit dispatch (`action: "commit"`) returned a real commit hash, and you recorded it in the ticket file.
+3. Every AC this ticket claims is marked `- [x]`, backed by what the review actually confirmed — not marked pass by default.
+4. `Status` in the ticket file is set to done.
+
+There is no "review looked fine, moving on" shortcut — a clean review only authorizes the approval *ask*, not the move to the next ticket. If any of the four is missing, you are mid-ticket, not between tickets: stay here and resolve it (or stop, per below) before touching ticket N+1.
+
+- All four true → next ticket.
 - Two failed test attempts, review finds a miss, human rejects the approval, or any AC still unchecked → stop the whole task, tell the human which ticket/criteria and why, wait.
 
 The tip of the work lives on the last completed ticket's branch, not `main`.
@@ -101,6 +109,14 @@ Only Phase 4a is delegated, in **two dispatches per ticket**: implement (§4a) a
 2. **Non-Claude-Code hosts / other providers.** Call `runSubAgent()` in `tools/subagent-adapter/interface.ts`, which resolves the provider from `.claude/harness.json`, injects skills + rules, writes the handoff log, and records telemetry.
 
 Whichever path, never send the sub-agent your raw conversation history — only the payload below.
+
+**`task` must be self-contained, not a one-liner.** `execute` sees nothing you saw in Phase 1–3 except what's in `task` and `context`. A short prompt ("implement ticket 03") forces `execute` to guess scope from the ticket file alone — exactly the kind of guess that produces scope drift the orchestrator is supposed to have already resolved by grilling. Every `task` string must spell out, inline:
+- The acceptance criteria for this ticket, copied in — not just a path to go read.
+- The specific `spec.md` section(s) this ticket implements, and any constraint from `CONTEXT.md`/`docs/adr/` that bears on it.
+- Any prototype, sketch, or reference artifact from Phase 1 grilling that shows the intended shape (state the artifact's path or content explicitly — never assume `execute` will find or infer it).
+- What is explicitly out of scope for this ticket, if the boundary is easy to overrun.
+
+If you can't fill in all four from what Phase 1–3 produced, that's a signal Phase 1's frontier wasn't actually empty — go back and grill, don't paper over the gap with a vague `task`.
 
 **Adapter status.** All four provider adapters (`claude`, `codex`, `deepseek`, `gemini`) are single-turn reference stubs with `capabilities.toolUse: false`. `runSubAgent()` **refuses** to pair them with `execute` rather than returning prose that looks like success and silently skips implementation, testing, or the commit step. Give one a real multi-turn tool loop and set `capabilities.toolUse = true` before routing `execute` through it.
 

@@ -54,9 +54,10 @@ pnpm run telemetry-mcp
       reason
    - e. that ticket's own file under `tickets/` now has a new row in its
       `## Execution log` table naming the `execute` sub-agent, the
-      skill(s) it used (`implement`, `tdd`), the specific rule/step it
-      followed within that skill (e.g. `tdd`'s red-green-refactor), what
-      it did, and the outcome — and its
+      skill(s) it used (`implement`, `tdd`), the exact source file paths
+      it read this attempt in the "Source files read" column (not left
+      blank), the specific rule/step it followed within that skill (e.g.
+      `tdd`'s red-green-refactor), what it did, and the outcome — and its
       `Attempts` counter is bumped
 6. **Phase 5** — confirm `docs/requirements/<slug>/review.md` gets written
    and you're asked to approve/reject the whole task.
