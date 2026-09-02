@@ -18,13 +18,15 @@ Phase 1 — Grill (`grill-with-docs`) — orchestrator ↔ you, no skip/timeout
 Phase 2 — Spec (`to-spec`) — orchestrator
            docs/requirements/<slug>/spec.md
   ▼
-Phase 3 — Tickets (`to-tickets`) — orchestrator ↔ you (approve the breakdown)
-           docs/requirements/<slug>/tickets/<NN>-<slug>.md (one file per ticket)
+Phase 3 — Tickets (`to-tickets`) — orchestrator ↔ you (approve the breakdown
+           and which tickets get e2e)
+           docs/requirements/<slug>/tickets/<NN>-<slug>.md (one file per ticket,
+           each declaring `Test kinds: unit, integration[, e2e]`)
   ▼
 Phase 4 — per ticket, dependency order:
            4a  execute sub-agent, implement dispatch (loop, max 2 attempts)
                handoff log → checkout/create ticket branch →
-               implement → unit tests + integration tests (host Bash)
+               implement → run every kind in `Test kinds` (host Bash)
                  pass → stop, uncommitted → return summary + test output → 4b
                  fail attempt 1 → fix, loop once
                  fail attempt 2 → STOP, ask you
@@ -60,19 +62,41 @@ originates from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT
 licensed), vendored into this repo rather than fetched at setup time. To pull
 in updates from upstream, copy the relevant `SKILL.md` file(s) over manually.
 
+## Test kinds and e2e
+
+Every ticket declares its own `Test kinds:` line — `unit, integration` is
+the floor on every ticket, and `e2e` is added only where the spec's
+`## Testing Decisions` criterion calls for it (normally the ticket that
+*closes* a user-visible flow, not every ticket in its chain). The decision
+is a human's, made once in the Phase 3 breakdown quiz and recorded in the
+ticket file; `execute` runs exactly what the field declares and may never
+edit it, because that field is what the 4b and Phase 5 gates check against
+— dropping a kind would delete the gate rather than satisfy it.
+
+That's why "which tests" is data rather than a judgement call at
+implementation time: an absent `e2e` row in a report has to mean "not
+required here", and it can only mean that if something else already says
+so. What the three words *mean* is itself project-specific — for an HTTP
+API, `integration` often already drives the app in-process while `e2e`
+means a running server against a real database, and some projects
+legitimately have no third layer at all. Phase 1 pins those definitions
+down in `CONTEXT.md` before any of this is assigned.
+
 ## Test evidence
 
-`execute` runs unit and integration tests on the host via `Bash`, then
+`execute` runs every kind the ticket declares on the host via `Bash`, then
 writes `logs/reports/<ticket>.html` itself directly with `Write` — a small
 self-contained HTML file, one table per attempt, cumulative across
-retries. There is no renderer script or telemetry pipeline behind it: the
-sub-agent authors the file's HTML by hand, which is enough for something
-this simple and adds no dependency. It also reports the actual command
-plus pass/fail counts directly in the summary it returns to the
-orchestrator (CLAUDE.md § 4a), and logs each attempt as a row in that
-ticket's own `## Execution log` table (`.claude/agents/execute.md`). The
-orchestrator reads both the HTML report and that table during the 4b
-per-ticket review and the Phase 5 whole-task review. `logs/reports/*.html`
+retries, one row per declared kind. There is no renderer script or
+telemetry pipeline behind it: the sub-agent authors the file's HTML by
+hand, which is enough for something this simple and adds no dependency. It
+also reports the actual command plus per-kind pass/fail counts directly in
+the summary it returns to the orchestrator (CLAUDE.md § 4a), and logs each
+attempt as a row in that ticket's own `## Execution log` table
+(`.claude/agents/execute.md`). The orchestrator reads both the HTML report
+and that table during the 4b per-ticket review and the Phase 5 whole-task
+review, and a kind the ticket declared but that shows up in neither is a
+failed gate rather than a pass. `logs/reports/*.html`
 is git-ignored per `git-convention.md` §5 — it's regenerated per run, not
 committed.
 

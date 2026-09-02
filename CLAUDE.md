@@ -10,11 +10,12 @@ Read and follow `.claude/skills/grill-with-docs/SKILL.md`. That skill loads `gri
 
 - Interview in rounds until the frontier is empty and the human confirms shared understanding.
 - Write `CONTEXT.md` (glossary) and `docs/adr/` as terms and decisions crystallise — do not batch them.
+- **Pin down what `unit`, `integration`, and `e2e` mean in *this* project**, as glossary entries: which seam each one sits at, and whether a separate e2e layer exists at all. These three words mean different things in different codebases — for an HTTP API, "integration" often already means driving the app in-process while "e2e" means a running server against a real database, and plenty of projects legitimately have no third layer. Phase 3 assigns test kinds per ticket off these definitions and your own 4b gate checks them, so leaving them implicit guarantees `execute` and you will disagree later about which kind a given run counted as.
 - Hand grilling notes (decisions, terminology, scope boundaries) plus those docs to Phase 2.
 
 Blocking: wait for a real answer. No skip, no timeout.
 
-Gate: human confirmed shared understanding; grilling notes exist; glossary/ADRs written for every term and decision that crystallised.
+Gate: human confirmed shared understanding; grilling notes exist; glossary/ADRs written for every term and decision that crystallised — including the test-kind definitions above.
 
 ## Phase 2 — Spec (`to-spec`)
 
@@ -23,18 +24,20 @@ You do this. Read and follow `.claude/skills/to-spec/SKILL.md`. Synthesize Phase
 - Write only `docs/requirements/<slug>/spec.md`. No application/production code.
 - Check seams with the human before writing the spec.
 - Use glossary vocabulary; respect ADRs.
+- The spec's `## Testing Decisions` section must state three things explicitly, on top of what the `to-spec` template already asks for: **which test kinds this task uses** (`unit` and `integration` are the floor — every ticket runs both); **the criterion that decides which tickets also get `e2e`**, in terms a reader can apply to a ticket without asking you (e.g. "the ticket that closes a user-visible flow end to end"); and **whether the e2e harness already exists in this repo**. If it doesn't, standing it up is its own Phase 3 blocker ticket — never something a feature ticket absorbs on the side. Keep the intended e2e suite scoped to a smoke pass over the flow, not a full regression sweep: e2e is slow and flaky, and a bloated suite burns 4a's two-attempt budget on infrastructure noise rather than on the ticket.
 
-Gate: `docs/requirements/<slug>/spec.md` exists and is non-empty.
+Gate: `docs/requirements/<slug>/spec.md` exists and is non-empty, and its `## Testing Decisions` section names the test kinds in play and the criterion for `e2e`.
 
 ## Phase 3 — Tickets (`to-tickets`)
 
 You do this. Read and follow `.claude/skills/to-tickets/SKILL.md`. Break the spec into tracer-bullet tickets.
 
-- Quiz the human on the breakdown (granularity, blocking edges, merge/split) and iterate until they approve.
+- Quiz the human on the breakdown (granularity, blocking edges, merge/split, **and which tickets get `e2e`**) and iterate until they approve.
 - Write **one file per ticket** at `docs/requirements/<slug>/tickets/<NN>-<ticket-slug>.md`, numbered from `01`, blockers first. No application/production code.
-- Each file must include: title, status, related spec section, acceptance criteria, **Depends on** (blocking edges), attempts counter starting at `0/2`, and an empty `## Execution log`.
+- Each file must include: title, status, related spec section, acceptance criteria, **Depends on** (blocking edges), **Test kinds** (see below), attempts counter starting at `0/2`, and an empty `## Execution log`.
+- **`Test kinds:`** — a comma-separated list on every ticket, drawn from the spec's `## Testing Decisions`, e.g. `**Test kinds:** unit, integration` or `**Test kinds:** unit, integration, e2e`. `unit, integration` is the floor and appears on every ticket; add `e2e` only where the spec's criterion says so. That is normally the ticket that *closes* a user-visible flow, not every ticket in its chain — re-running the same e2e suite on each intermediate ticket costs minutes and proves nothing new. Which tickets get `e2e` is the human's call: raise it in the quiz above and let them approve it with the rest of the breakdown. Once approved, this field is the gate 4b and Phase 5 check against, so it is not a hint — it is the declaration of what must pass.
 
-Gate: that tickets directory has at least one ticket file, and the human approved the breakdown.
+Gate: that tickets directory has at least one ticket file, every ticket file carries a `Test kinds` line, and the human approved the breakdown.
 
 ## Phase 4 — Execute (`execute`) then review this ticket
 
@@ -47,12 +50,12 @@ Dispatch per § Delegation — on Claude Code, the Agent tool with `subagent_typ
 `execute` creates the ticket branch (`<slug>/<NN>-<ticket-slug>`, off its blocker's branch or `main`), then runs this loop (max two attempts):
 
 1. Implement.
-2. Run **unit tests and integration tests** on the host via execute's Bash.
-3. Write/update `logs/reports/<ticket>.html` (execute authors this directly with `Write` — no renderer script, no telemetry pipeline) and name that path in the summary it returns.
-4. Both pass → stop the loop. **Leave the changes uncommitted** on the ticket branch and return success to 4b, with a diff summary, the actual test output (command run, pass/fail counts), and the report path. `execute` does not commit here and does not seek approval — a sub-agent cannot block mid-task on a human answer, so the approval gate now lives in the orchestrator (4b), not in `execute`.
-5. Fail → write the report anyway, then: if this was attempt 1/2, fix and loop back to step 1 (one retry). If this was attempt 2/2, stop and report failure with the actual output. Do not try a third time.
+2. Run **every test kind this ticket's `Test kinds` field declares** on the host via execute's Bash — `unit` and `integration` always, plus `e2e` when the field lists it.
+3. Write/update `logs/reports/<ticket>.html` (execute authors this directly with `Write` — no renderer script, no telemetry pipeline) and name that path in the summary it returns, with one row per declared kind.
+4. All declared kinds pass → stop the loop. **Leave the changes uncommitted** on the ticket branch and return success to 4b, with a diff summary, the actual test output (command run, pass/fail counts, per kind), and the report path. `execute` does not commit here and does not seek approval — a sub-agent cannot block mid-task on a human answer, so the approval gate now lives in the orchestrator (4b), not in `execute`.
+5. Fail → write the report anyway, then: if this was attempt 1/2, fix and loop back to step 1 (one retry). If this was attempt 2/2, stop and report failure with the actual output. Do not try a third time. A flaky `e2e` run gets no exemption here — it spends an attempt like any other failure, which is why the spec keeps that suite small.
 
-`execute` does not check Acceptance Criteria and does not mark `Status` done.
+`execute` does not check Acceptance Criteria, does not mark `Status` done, and does not edit `Test kinds`.
 
 Skills and rules for 4a implement: skills `implement` + `tdd` (from `.claude/skills/`), rules `coding-standard`, `security-common`, `security-backend`, `security-frontend` (from `.claude/rules/`). `git-convention` is not needed here — nothing gets committed yet.
 
@@ -62,7 +65,9 @@ The Agent tool injects **nothing** — it only loads `.claude/agents/execute.md`
 
 You do this. After `execute` reports success, load `.claude/rules/coding-standard.md` and the security rules (`security-common`, plus `security-backend` / `security-frontend` if this ticket touched that surface). Then review **this ticket's branch** — still uncommitted at this point — against `spec.md` and **this ticket's** acceptance criteria (`code-review` skill: Standards axis = those rules, Spec axis = spec + AC). Do not skip to the next ticket. Do not load `git-convention` here — that belongs to the commit dispatch below.
 
-Read `logs/reports/<ticket>.html` (the path `execute` returned) and this ticket file's own `## Execution log` table as part of this review — both unit and integration must show a pass on the latest attempt for this to count as tests-passing; if either kind is missing or ambiguous in either source, treat that as a failed gate, not a pass, and do not check AC off it. Note in your review which AC the tests actually covered.
+Read `logs/reports/<ticket>.html` (the path `execute` returned) and this ticket file's own `## Execution log` table as part of this review — **every kind listed in this ticket's `Test kinds` field** must show a pass on the latest attempt for this to count as tests-passing; if a declared kind is missing or ambiguous in either source, treat that as a failed gate, not a pass, and do not check AC off it. A report with no `e2e` row on a ticket that declares `e2e` means the e2e run never happened, not that it turned out not to be needed. Note in your review which AC the tests actually covered.
+
+Check the `Test kinds` field itself against what Phase 3 approved. It is not `execute`'s field to edit, so if a kind has gone missing since the breakdown was approved, that is a failed gate too — dropping a declared kind removes the gate rather than satisfying it, which is exactly the quiet weakening of a control that `security-common.md` § Never Weaken Existing Controls forbids. Narrowing the kinds is the human's call in Phase 3, not a mid-implementation adjustment.
 
 Reading a diff is review, not implementation, so you do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/`merge-base`, allowlisted in `.claude/settings.json`). `git diff <base>` shows uncommitted working-tree changes just as well as committed ones, so this is enough even though nothing has landed yet. The fixed point is this ticket's base branch — its blocker's branch, or `main` for an unblocked ticket. Two deviations from the upstream `code-review` skill: the spec source is always `docs/requirements/<slug>/spec.md` plus this ticket's AC, so skip its issue-tracker lookup and never ask for `/setup-matt-pocock-skills`; and mutating git (`push`, `reset --hard`, `clean`) stays denied to you.
 
@@ -94,7 +99,9 @@ The tip of the work lives on the last completed ticket's branch, not `main`.
 
 Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the tip branch against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
 
-Confirm every ticket's own `## Execution log` table and `logs/reports/<ticket>.html` show a passing final attempt for both unit and integration tests, and cite both in `review.md` (the HTML path, not its contents — it's git-ignored generated output). Call out explicitly any ticket whose log/report doesn't show both passing, or where either is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
+Confirm every ticket's own `## Execution log` table and `logs/reports/<ticket>.html` show a passing final attempt for **every kind that ticket declares in `Test kinds`**, and cite both in `review.md` (the HTML path, not its contents — it's git-ignored generated output). Call out explicitly any ticket whose log/report doesn't show every declared kind passing, or where either source is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
+
+Then check the declarations themselves across the whole task: the set of tickets declaring `e2e` must still satisfy the criterion in the spec's `## Testing Decisions`. A ticket that should have declared `e2e` and didn't is the same unverified result as one whose `e2e` never ran — the flow was never driven end to end either way — so flag it the same way rather than treating a green report on a narrower declaration as a pass.
 
 - Approve → append a dated lessons section to `LEARNING.md`. Stop.
 - Reject → uncheck the implicated AC, re-run Phase 4 for those tickets only, then Phase 5 again.
@@ -111,6 +118,7 @@ Never send the sub-agent your raw conversation history — only the payload belo
 - The acceptance criteria for this ticket, copied in — not just a path to go read.
 - The specific `spec.md` section(s) this ticket implements, and any constraint from `CONTEXT.md`/`docs/adr/` that bears on it.
 - Any prototype, sketch, or reference artifact from Phase 1 grilling that shows the intended shape (state the artifact's path or content explicitly — never assume `execute` will find or infer it).
+- This ticket's `Test kinds`, copied in, and for each kind the command that runs it. When `e2e` is among them, also state how to bring the environment up (compose file, migrations, seed data, base URL) — `execute` cannot infer any of that from the ticket file, and an `execute` that guesses at e2e setup will report an infrastructure failure as a code failure and spend both attempts on it.
 - What is explicitly out of scope for this ticket, if the boundary is easy to overrun.
 
 If you can't fill in all four from what Phase 1–3 produced, that's a signal Phase 1's frontier wasn't actually empty — go back and grill, don't paper over the gap with a vague `task`.
