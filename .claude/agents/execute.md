@@ -101,19 +101,41 @@ two disagree.
   different ticket yourself.
 - **Unit tests and integration tests before you stop.** After
   implementation, run both on the host via `Bash`. Unit tests alone are
-  not enough. Both must pass before you return success. There is no
-  generated report — the summary you return to the orchestrator is the
-  only test evidence it has, so name the actual command(s) run and the
-  actual pass/fail/skip counts for both kinds, every attempt including
-  failed ones. Never put a secret, token, or environment dump in that
-  summary or in a failure message (A09).
+  not enough. Both must pass before you return success. Name the actual
+  command(s) run and the actual pass/fail/skip counts for both kinds,
+  every attempt including failed ones, in the summary you return to the
+  orchestrator. Never put a secret, token, or environment dump in that
+  summary, the report below, or a failure message (A09).
+- **Write the HTML test report yourself, after every attempt.** There is
+  no renderer script or telemetry pipeline — you author
+  `logs/reports/<ticket>.html` directly with `Write`, as a small
+  self-contained HTML file (inline `<style>`, no external JS/CSS, no
+  build step). One file per ticket, cumulative across attempts:
+  - On attempt 1, create it with one row per test kind (`unit`,
+    `integration`): command run, passed/failed/skipped counts, and
+    failure messages (if any).
+  - On a retry (attempt 2/2), **read the existing file first** and add
+    attempt 2's rows below attempt 1's — do not overwrite attempt 1's
+    history. The file must show every attempt made on this ticket, not
+    just the latest.
+  - A minimal structure: an `<h1>` naming the ticket, then one `<table>`
+    per attempt with columns `Kind | Command | Passed | Failed | Skipped |
+    Failures`. Badge each attempt `passed` (both kinds passed) or
+    `failed` (either kind failed) near its heading, in plain text or a
+    colored `<span>` — keep it simple, this is read by a human in a
+    browser, not parsed by code.
+  - Do this on every attempt, including a failed second attempt — the
+    human deciding whether to stop needs to see what broke. Name the
+    path (`logs/reports/<ticket>.html`) in the summary you return to the
+    orchestrator, every time.
 - **Do not check Acceptance Criteria and do not mark `Status` done.**
   That is the orchestrator's per-ticket review (Phase 4b–4c) after you
   return success. Leave AC checkboxes as `- [ ]` and `Status` as it was.
 - **Never commit on an implement-mode dispatch, no exceptions.** Once
   unit and integration tests pass, stop — leave the changes uncommitted on
-  the ticket branch and return a diff summary plus the actual test output.
-  You are not the one who asks for approval or decides to commit; that's
+  the ticket branch and return a diff summary plus the actual test output
+  and the report path. You are not the one who asks for approval or decides
+  to commit; that's
   the orchestrator's job in CLAUDE.md § Phase 4b, run in its own chat where
   it can actually block on a human answer. Only commit when a later call
   arrives with `context.action === "commit"`, which by construction only
