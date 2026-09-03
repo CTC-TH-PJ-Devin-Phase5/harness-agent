@@ -31,7 +31,8 @@ Phase 2 — Spec (`to-spec`) — orchestrator
 Phase 3 — Tickets (`to-tickets`) — orchestrator ↔ you (approve the breakdown
            and which tickets get e2e)
            docs/requirements/<slug>/tickets/<NN>-<slug>.md (one file per ticket,
-           each declaring `Test kinds: unit, integration[, e2e]`)
+           each declaring `Test kinds: unit[, integration[, e2e]]` — integration
+           and e2e only once a connected FE↔BE↔DB flow exists in this repo)
   ▼
 Phase 4 — per ticket, dependency order:
            4a  execute sub-agent, implement dispatch (loop, max 2 attempts)
@@ -130,16 +131,24 @@ add your own CI and hooks for your stack; treat these rules as the
 shift-left layer, not as a substitute for a pipeline that can actually block
 a merge.
 
-## Test kinds and e2e
+## Test kinds, integration and e2e
 
-Every ticket declares its own `Test kinds:` line — `unit, integration` is
-the floor on every ticket, and `e2e` is added only where the spec's
-`## Testing Decisions` criterion calls for it (normally the ticket that
-*closes* a user-visible flow, not every ticket in its chain). The decision
-is a human's, made once in the Phase 3 breakdown quiz and recorded in the
-ticket file; `execute` runs exactly what the field declares and may never
-edit it, because that field is what the 4b and Phase 5 gates check against
-— dropping a kind would delete the gate rather than satisfy it.
+Every ticket declares its own `Test kinds:` line. `unit` is always the
+floor. `integration` and `e2e` both require a real connected flow — front-
+end through back-end through the database — to already exist in this
+repo, because both mean testing across a boundary that only exists once
+that wiring is in place. Early in a project, before that flow exists, the
+floor is `unit` alone and no ticket declares `integration` or `e2e`, no
+matter how much a ticket looks like it deserves one. Once the flow exists,
+the floor becomes `unit, integration`, and `e2e` is added on top of that
+only where the spec's `## Testing Decisions` criterion calls for it
+(normally the ticket that *closes* a user-visible flow, not every ticket
+in its chain). Which case a spec is in, and which tickets get `e2e` once
+eligible, is a human's call, made once in the Phase 2 spec and the Phase 3
+breakdown quiz and recorded in the ticket file; `execute` runs exactly
+what the field declares and may never edit it, because that field is what
+the 4b and Phase 5 gates check against — dropping or adding a kind would
+delete the gate rather than satisfy it either way.
 
 That's why "which tests" is data rather than a judgement call at
 implementation time: an absent `e2e` row in a report has to mean "not
