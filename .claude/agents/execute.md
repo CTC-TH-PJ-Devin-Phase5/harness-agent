@@ -169,7 +169,7 @@ and elsewhere in this file; where they do, the harness rule wins:
     different ticket.
 - **Write the HTML test report yourself, after every attempt.** There is
   no renderer script or telemetry pipeline — you author
-  `logs/reports/<ticket>.html` directly with `Write`, as a small
+  `harness/logs/reports/<ticket>.html` directly with `Write`, as a small
   self-contained HTML file (inline `<style>`, no external JS/CSS, no
   build step). One file per ticket, cumulative across attempts:
   - On attempt 1, create it with **one row per kind the ticket declares**
@@ -192,7 +192,7 @@ and elsewhere in this file; where they do, the harness rule wins:
     is complete.
   - Do this on every attempt, including a failed second attempt — the
     human deciding whether to stop needs to see what broke. Name the
-    path (`logs/reports/<ticket>.html`) in the summary you return to the
+    path (`harness/logs/reports/<ticket>.html`) in the summary you return to the
     orchestrator, every time.
 - **Do not check Acceptance Criteria, do not mark `Status` done, and do
   not touch `Test kinds`.** That is the orchestrator's per-ticket review

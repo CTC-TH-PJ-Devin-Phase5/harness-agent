@@ -123,7 +123,7 @@ ticket after it — then loops at most twice:
 2. Run every kind in this ticket's `Test kinds` on the host via execute's
    Bash — exactly what the field lists, no more (don't assume
    `integration` is in there).
-3. Write/update `logs/reports/<ticket>.html` (execute authors this
+3. Write/update `harness/logs/reports/<ticket>.html` (execute authors this
    directly with `Write` — no renderer script, no telemetry pipeline),
    one row per declared kind.
 4. All declared kinds pass → stop, **leave the changes uncommitted**,
@@ -145,7 +145,7 @@ and the security rules, then review this ticket's own uncommitted changes
 on the task branch — fixed point `git diff HEAD`, since every earlier
 ticket is already committed there — against `spec.md` and this ticket's
 acceptance criteria (`code-review`). Do not skip to the next ticket. Read
-`logs/reports/<ticket>.html` (the path `execute` returned) and this
+`harness/logs/reports/<ticket>.html` (the path `execute` returned) and this
 ticket's own `## Execution log` table too: **every kind this ticket
 declares in `Test kinds`** must show a pass on the latest attempt for this
 to count as tests-passing — a declared kind that is missing or ambiguous
@@ -186,7 +186,7 @@ main...HEAD`). Write
 your findings to `docs/requirements/<slug>/review.md`.
 
 Confirm every ticket's own `## Execution log` table and
-`logs/reports/<ticket>.html` show a passing final attempt for **every kind
+`harness/logs/reports/<ticket>.html` show a passing final attempt for **every kind
 that ticket declares in `Test kinds`**, and cite both in `review.md`. Call
 out any ticket where either source doesn't show every declared kind
 passing, or either is missing entirely (that one's tests were never

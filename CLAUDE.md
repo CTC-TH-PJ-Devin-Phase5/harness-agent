@@ -55,7 +55,7 @@ Dispatch per § Delegation — on Claude Code, the Agent tool with `subagent_typ
 
 1. Implement.
 2. Run **every test kind this ticket's `Test kinds` field declares, and nothing it doesn't** — on the host via execute's Bash. Don't assume `integration` is in there; read the field.
-3. Write/update `logs/reports/<ticket>.html` (execute authors this directly with `Write` — no renderer script, no telemetry pipeline) and name that path in the summary it returns, with one row per declared kind.
+3. Write/update `harness/logs/reports/<ticket>.html` (execute authors this directly with `Write` — no renderer script, no telemetry pipeline) and name that path in the summary it returns, with one row per declared kind.
 4. All declared kinds pass → stop the loop. **Leave the changes uncommitted** on the task branch and return success to 4b, with a diff summary, the actual test output (command run, pass/fail counts, per kind), and the report path. `execute` does not commit here and does not seek approval — a sub-agent cannot block mid-task on a human answer, so the approval gate now lives in the orchestrator (4b), not in `execute`.
 5. Fail → write the report anyway, then: if this was attempt 1/2, fix and loop back to step 1 (one retry). If this was attempt 2/2, stop and report failure with the actual output. Do not try a third time. A flaky `e2e` run gets no exemption here — it spends an attempt like any other failure, which is why the spec keeps that suite small.
 
@@ -69,7 +69,7 @@ The Agent tool injects **nothing** — it only loads `.claude/agents/execute.md`
 
 You do this. After `execute` reports success, load `.claude/rules/coding-standard.md` and the security rules (`security-common`, plus `security-backend` / `security-frontend` if this ticket touched that surface). Then review **this ticket's own uncommitted changes on the task branch** — nothing has landed yet at this point — against `spec.md` and **this ticket's** acceptance criteria (`code-review` skill: Standards axis = those rules, Spec axis = spec + AC). Do not skip to the next ticket. Do not load `git-convention` here — that belongs to the commit dispatch below.
 
-Read `logs/reports/<ticket>.html` (the path `execute` returned) and this ticket file's own `## Execution log` table as part of this review — **every kind listed in this ticket's `Test kinds` field** must show a pass on the latest attempt for this to count as tests-passing; if a declared kind is missing or ambiguous in either source, treat that as a failed gate, not a pass, and do not check AC off it. A report with no `e2e` row on a ticket that declares `e2e` means the e2e run never happened, not that it turned out not to be needed. Note in your review which AC the tests actually covered.
+Read `harness/logs/reports/<ticket>.html` (the path `execute` returned) and this ticket file's own `## Execution log` table as part of this review — **every kind listed in this ticket's `Test kinds` field** must show a pass on the latest attempt for this to count as tests-passing; if a declared kind is missing or ambiguous in either source, treat that as a failed gate, not a pass, and do not check AC off it. A report with no `e2e` row on a ticket that declares `e2e` means the e2e run never happened, not that it turned out not to be needed. Note in your review which AC the tests actually covered.
 
 Check the `Test kinds` field itself against what Phase 3 approved. It is not `execute`'s field to edit, so if a kind has gone missing since the breakdown was approved, that is a failed gate too — dropping a declared kind removes the gate rather than satisfying it, which is exactly the quiet weakening of a control that `security-common.md` § Never Weaken Existing Controls forbids. Narrowing the kinds is the human's call in Phase 3, not a mid-implementation adjustment.
 
@@ -103,7 +103,7 @@ The tip of the work lives on the task branch `<slug>` — one commit per complet
 
 Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the task branch `<slug>` (fixed point: `git diff main...HEAD`) against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
 
-Confirm every ticket's own `## Execution log` table and `logs/reports/<ticket>.html` show a passing final attempt for **every kind that ticket declares in `Test kinds`**, and cite both in `review.md` (the HTML path, not its contents — it's git-ignored generated output). Call out explicitly any ticket whose log/report doesn't show every declared kind passing, or where either source is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
+Confirm every ticket's own `## Execution log` table and `harness/logs/reports/<ticket>.html` show a passing final attempt for **every kind that ticket declares in `Test kinds`**, and cite both in `review.md` (the HTML path, not its contents — it's git-ignored generated output). Call out explicitly any ticket whose log/report doesn't show every declared kind passing, or where either source is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
 
 Then check the declarations themselves across the whole task: the set of tickets declaring `e2e` must still satisfy the criterion in the spec's `## Testing Decisions`. A ticket that should have declared `e2e` and didn't is the same unverified result as one whose `e2e` never ran — the flow was never driven end to end either way — so flag it the same way rather than treating a green report on a narrower declaration as a pass. Same check for `integration`: if this spec said no connected flow existed yet, confirm no ticket quietly declared `integration` or `e2e` anyway; if the spec said the flow exists, confirm the floor is really `unit, integration` everywhere it should be, not just `unit`.
 
@@ -168,7 +168,7 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 - `.claude/skills/create-pr/SKILL.md` — after Phase 5 approval: what you recommend, and what the human runs. You never run it.
 - `docs/requirements/<slug>/handoffs/` — exact context sent to each sub-agent.
 - `.claude/harness.json` — `execution.mode`, `permissions` (mirrors `execute.md`'s `tools:` frontmatter), `approval.autoApprove` (must stay `false`). (Claude Code's own settings live in `.claude/settings.json`.)
-- `logs/reports/<ticket>.html` — per-ticket test report, written directly by `execute` (no renderer script). Git-ignored per `git-convention.md` §5; you Read it in 4b, `execute` writes it in 4a.
+- `harness/logs/reports/<ticket>.html` — per-ticket test report, written directly by `execute` (no renderer script). Git-ignored per `git-convention.md` §5; you Read it in 4b, `execute` writes it in 4a.
 - `LEARNING.md` — prior-run lessons; read at `/build` start and before each execute ticket.
 
 ## Plan Mode
