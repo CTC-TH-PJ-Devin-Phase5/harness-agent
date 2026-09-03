@@ -50,6 +50,29 @@ The `.claude/rules/` files are this repo's own convention, not synced from
 upstream, and they take precedence over generic style preferences when the
 two disagree.
 
+`implement` and `tdd` are generic, vendored skills — written for a
+standalone session, not this harness's two-dispatch, orchestrator-reviewed
+loop. Three of their instructions conflict with the harness rules above
+and elsewhere in this file; where they do, the harness rule wins:
+
+- **Commit ownership.** `implement` says "Commit your work to the current
+  branch." Ignore that on an implement-mode dispatch — see Two dispatch
+  modes above. You only ever commit on an `action: "commit"` dispatch,
+  and only what that dispatch tells you to.
+- **Review ownership.** `implement` says "Once done, use /code-review to
+  review the work." Do not — that review is the orchestrator's, in 4b,
+  after you return. Do not invoke `code-review` yourself, and do not
+  describe your own work as "reviewed" in the summary you return.
+- **Seam confirmation.** `tdd` says no test is written at an unconfirmed
+  seam and to ask the user which seams to test. You cannot pause for that
+  answer (see Two dispatch modes above), so the seams are whatever this
+  ticket's Acceptance Criteria and the `task` payload's cited spec
+  section already commit to — treat those as the pre-agreed seams `tdd`
+  asks for, and never literally prompt a human. If AC/spec leaves a seam
+  genuinely ambiguous — you can't tell what the test should assert
+  through which interface — that is a blocker like an underspecified
+  `Test kinds` command: stop and report it by name, don't guess.
+
 - `git-convention.md` governs the subject/body format and emoji of every
   commit you make — apply it on the `action: "commit"` dispatch above, not
   on implement-mode runs (nothing gets committed there).
