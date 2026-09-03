@@ -42,18 +42,30 @@ Read and follow `.claude/skills/to-spec/SKILL.md`. Synthesize Phase 1 into
 the human before writing. No application/production code.
 
 Its `## Testing Decisions` section must also state: which test kinds this
-task uses (`unit` + `integration` are the floor, on every ticket), the
-criterion deciding which tickets additionally get `e2e`, and whether the
-e2e harness already exists — if it doesn't, standing it up is its own
+task uses; **whether a real connected flow — front-end through back-end
+through the database — already exists in this repo**; the criterion
+deciding which tickets additionally get `e2e`; and whether the e2e
+harness already exists — if it doesn't, standing it up is its own
 blocker ticket in Phase 3, not something a feature ticket absorbs. Keep
 the e2e suite scoped to a smoke pass over the flow: it's slow and flaky,
-and a big one burns 4a's two attempts on infrastructure noise. `e2e` is
-opt-in — if a ticket's fit against the criterion is unclear, leave it off
-rather than adding it defensively; a missing `e2e` that should be there
-surfaces as a Phase 5 finding, not a silent risk.
+and a big one burns 4a's two attempts on infrastructure noise.
 
-Gate: `docs/requirements/<slug>/spec.md` must exist, be non-empty, and
-name its test kinds + `e2e` criterion before proceeding.
+`unit` is always the floor. `integration` and `e2e` both require the
+connected flow to exist — both mean testing across a boundary that
+doesn't exist until front-end, back-end and the database are actually
+wired together. No connected flow yet → floor is `unit` alone, and no
+ticket declares `integration` or `e2e`, even one that looks like it
+closes a flow — there's no real flow yet to close. Connected flow exists
+→ floor is `unit, integration`, and `e2e` layers on top, opt-in per the
+criterion: if a ticket's fit is unclear, leave it off rather than adding
+it defensively; a missing `e2e` that should be there surfaces as a
+Phase 5 finding, not a silent risk. Note which case this spec is in, and
+flag it as a standing question for the next spec on this repo once the
+connected flow lands.
+
+Gate: `docs/requirements/<slug>/spec.md` must exist, be non-empty, name
+its test kinds, state whether the connected flow exists yet, and give the
+`e2e` criterion before proceeding.
 
 ## Phase 3 — Tickets (you do this, `to-tickets`)
 
@@ -65,13 +77,14 @@ title, status, related spec section, acceptance criteria, Depends on,
 `Test kinds`, attempts `0/2`, empty `## Execution log`. No
 application/production code.
 
-`**Test kinds:** unit, integration` (optionally `, e2e`) is a
-comma-separated declaration drawn from the spec's Testing Decisions.
-`unit, integration` goes on every ticket; add `e2e` only where the spec's
-criterion clearly says so, defaulting every other ticket to `unit,
-integration` alone — normally the ticket that *closes* a user-visible
-flow, not every ticket in its chain. It's the human's call, approved with the
-breakdown, and it's the field 4b and Phase 5 gate against.
+`**Test kinds:**` is a comma-separated declaration drawn from the spec's
+Testing Decisions: `unit` alone while no connected flow exists yet in
+this repo, `unit, integration` once one does, `e2e` layered on top only
+where the spec's criterion clearly says so — normally the ticket that
+*closes* a user-visible flow, not every ticket in its chain. Never put
+`integration` or `e2e` on a ticket when the spec says the connected flow
+doesn't exist yet. It's the human's call, approved with the breakdown,
+and it's the field 4b and Phase 5 gate against.
 
 Gate: that tickets directory must exist with at least one ticket file,
 every ticket must carry a `Test kinds` line, and the human must have
@@ -106,7 +119,8 @@ ticket after it — then loops at most twice:
 
 1. Implement.
 2. Run every kind in this ticket's `Test kinds` on the host via execute's
-   Bash — `unit` + `integration` always, `e2e` when declared.
+   Bash — exactly what the field lists, no more (don't assume
+   `integration` is in there).
 3. Write/update `logs/reports/<ticket>.html` (execute authors this
    directly with `Write` — no renderer script, no telemetry pipeline),
    one row per declared kind.
@@ -177,7 +191,11 @@ passing, or either is missing entirely (that one's tests were never
 recorded — unverified). Then confirm the set of tickets declaring `e2e`
 still satisfies the spec's `## Testing Decisions` criterion: a ticket that
 should have declared `e2e` and didn't leaves the flow undriven just as
-surely as one whose `e2e` never ran — flag it the same way.
+surely as one whose `e2e` never ran — flag it the same way. Same check on
+`integration`: if the spec said no connected flow exists yet, no ticket
+should have quietly picked up `integration` or `e2e` anyway; if it said
+the flow exists, `unit, integration` should be the floor everywhere it
+applies, not just `unit`.
 
 Present a summary to the human and ask for approve/reject. **Never
 auto-approve.**

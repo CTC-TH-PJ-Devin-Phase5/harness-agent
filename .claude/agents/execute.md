@@ -138,12 +138,15 @@ and elsewhere in this file; where they do, the harness rule wins:
   to the orchestrator — do not try a third time, and do not move on to a
   different ticket yourself. A flaky `e2e` run is not exempt: it spends
   an attempt like any other failure.
-- **Run every test kind the ticket declares, before you stop.** The
-  ticket file carries a `Test kinds:` line — a comma-separated list, e.g.
-  `unit, integration` or `unit, integration, e2e`. Run **every** kind it
-  lists on the host via `Bash`; all of them must pass before you return
-  success. `unit, integration` is the floor on every ticket, so unit tests
-  alone are never enough. Name the actual command(s) run and the actual
+- **Run every test kind the ticket declares, and only those — before you
+  stop.** The ticket file carries a `Test kinds:` line — a comma-separated
+  list, e.g. `unit`, `unit, integration`, or `unit, integration, e2e`. Run
+  **exactly** what it lists on the host via `Bash`, no more and no less;
+  all listed kinds must pass before you return success. `unit` alone is a
+  valid, complete declaration on a ticket in a spec that says no
+  connected flow exists yet — don't add `integration` or `e2e` yourself
+  because it "seems safer"; the field is the human-approved contract, not
+  a floor you top up. Name the actual command(s) run and the actual
   pass/fail/skip counts **per kind**, every attempt including failed ones,
   in the summary you return to the orchestrator. Never put a secret,
   token, or environment dump in that summary, the report below, or a
@@ -168,7 +171,7 @@ and elsewhere in this file; where they do, the harness rule wins:
   self-contained HTML file (inline `<style>`, no external JS/CSS, no
   build step). One file per ticket, cumulative across attempts:
   - On attempt 1, create it with **one row per kind the ticket declares**
-    in `Test kinds` (`unit` and `integration` always, `e2e` when listed):
+    in `Test kinds` — read the field, don't assume which kinds are in it:
     command run, passed/failed/skipped counts, and failure messages (if
     any). Every declared kind gets a row even when it failed — a missing
     row is how the orchestrator detects a kind that never ran, so an
