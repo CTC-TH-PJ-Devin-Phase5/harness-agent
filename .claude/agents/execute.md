@@ -43,10 +43,14 @@ runs no injection step — nothing arrives pre-loaded in your prompt. So
 - `.claude/skills/implement/SKILL.md`
 - `.claude/skills/tdd/SKILL.md`
 - `.claude/rules/coding-standard.md`
-- `.claude/rules/git-convention.md`
 - `.claude/rules/security-common.md`
-- `.claude/rules/security-backend.md`
-- `.claude/rules/security-frontend.md`
+- **Whichever of `.claude/rules/security-backend.md` and
+  `.claude/rules/security-frontend.md` the `task` payload names.** The
+  orchestrator decides this, not you — it already knows this ticket's
+  surface from writing it in Phase 3, and states it explicitly in `task`
+  per CLAUDE.md § Delegation. Never guess this from the ticket file
+  yourself. If `task` doesn't say, that's a blocker: report it by name,
+  don't assume "neither" or "load both to be safe".
 
 Only if a file is genuinely unreadable do you stop and report it to the
 orchestrator by name. Never start implementing on the assumption that
@@ -80,17 +84,15 @@ and elsewhere in this file; where they do, the harness rule wins:
   `Test kinds` command: stop and report it by name, don't guess.
 
 - `git-convention.md` governs the subject/body format and emoji of every
-  commit you make — apply it on the `action: "commit"` dispatch above, not
-  on implement-mode runs (nothing gets committed there).
-- `security-common.md`, `security-backend.md`, and `security-frontend.md`
-  are `strict`-level OWASP rules (no hardcoded secrets, no injection,
-  never weaken an existing test/guard/validation to make something pass,
-  etc.) — treat a `strict` violation the same as a failing test: fix it
-  before you stop and return success, don't ship it and mention it
-  in passing. `security-frontend.md` is scoped to frontend code, which this
-  repo doesn't have today — it applies on every ticket regardless (this
-  harness doesn't do path-conditional rule loading), so on a ticket with no
-  frontend surface it simply won't have anything to apply.
+  commit you make. You don't Read it on an implement dispatch at all — the
+  commit dispatch is where it applies, and that dispatch Reads only it
+  (see the note at the top of this section).
+- `security-common.md` and whichever of `security-backend.md` /
+  `security-frontend.md` `task` named are `strict`-level OWASP rules (no
+  hardcoded secrets, no injection, never weaken an existing test/guard/
+  validation to make something pass, etc.) — treat a `strict` violation
+  the same as a failing test: fix it before you stop and return success,
+  don't ship it and mention it in passing.
 
 ## Hard constraints for this harness
 
@@ -201,11 +203,11 @@ and elsewhere in this file; where they do, the harness rule wins:
 - **Never commit on an implement-mode dispatch, no exceptions.** Once
   every declared test kind passes, stop — leave the changes uncommitted on
   the task branch and return a diff summary plus the actual test output
-  and the report path. You are not the one who asks for approval or decides
-  to commit; that's
-  the orchestrator's job in CLAUDE.md § Phase 4b, run in its own chat where
-  it can actually block on a human answer. Only commit when a later call
-  arrives with `context.action === "commit"`, which by construction only
+  and the report path. You are not the one who asks for approval or
+  decides to commit — that's the orchestrator's job in CLAUDE.md § Phase
+  4b, run in its own chat where it can actually block on a human answer.
+  Only commit when a later call arrives with `context.action ===
+  "commit"`, which by construction only
   happens after that approval already succeeded. If that call never
   arrives, nothing was approved — that is not a failure to route around.
 - **Log every attempt into the ticket file itself, as a table row.** After
@@ -226,15 +228,14 @@ and elsewhere in this file; where they do, the harness rule wins:
     (`implement`, plus `tdd` when you used test-first guidance).
   - **Source files read** — the exact repo-relative paths you actually
     `Read` this attempt before writing anything — not the ones you were
-    merely told to read. On an implement-mode attempt that's normally
+    merely told to read. On an implement-mode attempt that's
     `.claude/skills/implement/SKILL.md`, `.claude/skills/tdd/SKILL.md`,
     `.claude/rules/coding-standard.md`, `.claude/rules/security-common.md`,
-    `.claude/rules/security-backend.md`,
-    `.claude/rules/security-frontend.md`; on a commit-mode dispatch it's
-    just `.claude/rules/git-convention.md`. Do not leave this blank. This
-    is the one field that lets the orchestrator tell "loaded its rules"
-    apart from "was told to and didn't" without re-deriving it from your
-    prose.
+    and whichever `security-backend.md` / `security-frontend.md` `task`
+    named; on a commit-mode dispatch it's just
+    `.claude/rules/git-convention.md`. Do not leave this blank. This is
+    the one field that lets the orchestrator tell "loaded its rules" apart
+    from "was told to and didn't" without re-deriving it from your prose.
   - **Rule/step followed** — the specific rule/step from that skill you
     actually followed this attempt (e.g. `implement`'s prefactor-first
     step, or `tdd`'s red-green-refactor cycle) — not just the skill's

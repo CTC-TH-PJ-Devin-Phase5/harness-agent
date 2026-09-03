@@ -10,7 +10,7 @@ Read and follow `.claude/skills/grill-with-docs/SKILL.md`. That skill loads `gri
 
 - Interview in rounds until the frontier is empty and the human confirms shared understanding.
 - Write `CONTEXT.md` (glossary) and `docs/adr/` as terms and decisions crystallise — do not batch them.
-- **Pin down what `unit`, `integration`, and `e2e` mean in *this* project**, as glossary entries: which seam each one sits at, and whether a separate e2e layer exists at all. These three words mean different things in different codebases — for an HTTP API, "integration" often already means driving the app in-process while "e2e" means a running server against a real database, and plenty of projects legitimately have no third layer. Phase 3 assigns test kinds per ticket off these definitions and your own 4b gate checks them, so leaving them implicit guarantees `execute` and you will disagree later about which kind a given run counted as.
+- **Pin down what `unit`, `integration`, and `e2e` mean in *this* project**, as glossary entries: which seam each one sits at, and whether a separate e2e layer exists at all. These three words mean different things in different codebases — for an HTTP API, "integration" often already means driving the app in-process while "e2e" means a running server against a real database, and plenty of projects legitimately have no third layer. Phase 3 assigns test kinds per ticket off these definitions and your own 4b gate checks them, so leaving them implicit guarantees `execute` and you will disagree later about which kind a given run counted as. **Record the actual command for each kind that's already knowable** (e.g. `unit: pnpm test`, `integration: pnpm test:integration`) right in that glossary entry — every `task` payload needs this per ticket (see § Delegation), and deriving it once here beats re-deriving it on every dispatch. If a kind isn't runnable yet (no scaffold, no e2e harness), say so instead of guessing a command; that gap is what makes it a floor-not-met case (see Phase 2) or its own blocker ticket (Phase 3).
 - Hand grilling notes (decisions, terminology, scope boundaries) plus those docs to Phase 2.
 
 Blocking: wait for a real answer. No skip, no timeout.
@@ -128,10 +128,11 @@ Never send the sub-agent your raw conversation history — only the payload belo
 - The acceptance criteria for this ticket, copied in — not just a path to go read.
 - The specific `spec.md` section(s) this ticket implements, and any constraint from `CONTEXT.md`/`docs/adr/` that bears on it.
 - Any prototype, sketch, or reference artifact from Phase 1 grilling that shows the intended shape (state the artifact's path or content explicitly — never assume `execute` will find or infer it).
-- This ticket's `Test kinds`, copied in, and for each kind the command that runs it. When `e2e` is among them, also state how to bring the environment up (compose file, migrations, seed data, base URL) — `execute` cannot infer any of that from the ticket file, and an `execute` that guesses at e2e setup will report an infrastructure failure as a code failure and spend both attempts on it.
+- This ticket's `Test kinds`, copied in, and for each kind the command that runs it — pull the command from `CONTEXT.md` if Phase 1 recorded it there (see below) rather than re-deriving it per ticket. When `e2e` is among them, also state how to bring the environment up (compose file, migrations, seed data, base URL) — `execute` cannot infer any of that from the ticket file, and an `execute` that guesses at e2e setup will report an infrastructure failure as a code failure and spend both attempts on it.
+- **Which of `security-backend.md` / `security-frontend.md` (or both) this ticket needs**, per `execute.md`'s path-conditional rule loading — you already know this ticket's surface from writing it in Phase 3, so decide it here rather than leaving `execute` to guess.
 - What is explicitly out of scope for this ticket, if the boundary is easy to overrun.
 
-If you can't fill in all four from what Phase 1–3 produced, that's a signal Phase 1's frontier wasn't actually empty — go back and grill, don't paper over the gap with a vague `task`.
+If you can't fill in all of these from what Phase 1–3 produced, that's a signal Phase 1's frontier wasn't actually empty — go back and grill, don't paper over the gap with a vague `task`.
 
 **Handoff log.** Before every sub-agent call, persist the exact payload you are about to send:
 

@@ -105,13 +105,15 @@ Write the handoff log, then use the Agent tool with `subagent_type:
 The Agent tool injects **nothing**. So your `task` string must tell
 `execute` to Read its own skills (`.claude/skills/implement/SKILL.md`,
 `tdd/SKILL.md`) and rules (`.claude/rules/`: coding-standard,
-security-common, security-backend, security-frontend) before it writes any
-code. `git-convention` isn't needed for this dispatch — nothing gets
-committed here. Also make `task` self-contained (AC copied in, relevant
-spec section, any Phase-1 prototype/reference, this ticket's `Test kinds`
-plus the command for each — and for `e2e`, how to bring the environment
-up — and explicit out-of-scope) — see CLAUDE.md § Delegation for why a
-short one-liner isn't enough.
+security-common, plus **whichever of security-backend / security-frontend
+this ticket's surface needs** — decide that here, don't leave `execute`
+to guess) before it writes any code. `git-convention` isn't needed for
+this dispatch — nothing gets committed here. Also make `task`
+self-contained (AC copied in, relevant spec section, any Phase-1
+prototype/reference, this ticket's `Test kinds` plus the command for each
+— pull it from `CONTEXT.md` if Phase 1 recorded it there — and for `e2e`,
+how to bring the environment up — and explicit out-of-scope) — see
+CLAUDE.md § Delegation for why a short one-liner isn't enough.
 
 `execute` creates or checks out **the task branch** — one branch per task,
 named `<slug>`, cut off `main` by the first ticket and reused by every
