@@ -8,13 +8,13 @@ Single-agent sessions drift: scope creeps, the agent grades its own homework, an
 
 ## Workflow
 
-![The harness's five-phase pipeline](diagrams/workflow-pipeline.svg)
+![The harness's five-phase pipeline](harness/diagrams/workflow-pipeline.svg)
 
 Phase 1–3 and 5 all run on the orchestrator's own thread; only 4a leaves it.
 It leaves it *twice* per ticket, because a sub-agent cannot block waiting on a
 human answer — so the one approval checkpoint sits between the two dispatches:
 
-![Phase 4 per-ticket loop with two execute dispatches](diagrams/workflow-phase4.svg)
+![Phase 4 per-ticket loop with two execute dispatches](harness/diagrams/workflow-phase4.svg)
 
 The same flow as text, with the retry and stop paths spelled out
 
@@ -61,7 +61,7 @@ You approve/reject (manual, always)
 
 
 Orchestrator runbook: `CLAUDE.md`. Slash command: `.claude/commands/build.md`.
-Diagram sources: `diagrams/` (hand-written SVG, no build step — edit the file
+Diagram sources: `harness/diagrams/` (hand-written SVG, no build step — edit the file
 directly and keep it in step with `CLAUDE.md` when a phase or gate changes).
 
 ## Setup
@@ -105,8 +105,8 @@ then the root, then `docs/` — there is no setting that points it at
 `README-HARNESS.md`. Putting the stub in `.github/` leaves the root
 `README.md` slot free for you, but it also **outranks** whatever you write
 there, so your front page keeps showing this template until you remove it.
-Keep this file along with `CLAUDE.md`, `.claude/`, `LEARNING.md` and
-`.harness-version` — those are the harness.
+Keep this file along with `CLAUDE.md`, `.claude/`, `LEARNING.md`,
+`harness/` and `.harness-version` — those are the harness.
 
 Then adjust `.claude/rules/` for your stack before the first `/build` — the
 `paths` globs and the example paths inside `coding-standard.md` §8/§10 are
@@ -130,7 +130,7 @@ reports; all of it was removed along with the `tools/` and `scripts/`
 directories it existed to serve, because a template shouldn't impose a
 toolchain on the project that clones it. Nothing in Phase 1–5 depends on
 that machinery: `execute` runs your project's own test commands through
-`Bash` and writes `logs/reports/<ticket>.html` by hand.
+`Bash` and writes `harness/logs/reports/<ticket>.html` by hand.
 
 So the gates in this harness are the ones described here — the human
 approval ask in 4b, the AC checks in 4c, and the reviews in 4b/Phase 5 — and
@@ -170,7 +170,7 @@ down in `CONTEXT.md` before any of this is assigned.
 ## Test evidence
 
 `execute` runs every kind the ticket declares on the host via `Bash`, then
-writes `logs/reports/<ticket>.html` itself directly with `Write` — a small
+writes `harness/logs/reports/<ticket>.html` itself directly with `Write` — a small
 self-contained HTML file, one table per attempt, cumulative across
 retries, one row per declared kind. There is no renderer script or
 telemetry pipeline behind it: the sub-agent authors the file's HTML by
@@ -181,7 +181,7 @@ attempt as a row in that ticket's own `## Execution log` table
 (`.claude/agents/execute.md`). The orchestrator reads both the HTML report
 and that table during the 4b per-ticket review and the Phase 5 whole-task
 review, and a kind the ticket declared but that shows up in neither is a
-failed gate rather than a pass. `logs/reports/*.html`
+failed gate rather than a pass. `harness/logs/reports/*.html`
 is git-ignored per `git-convention.md` §5 — it's regenerated per run, not
 committed.
 
@@ -199,7 +199,7 @@ claude
 Before every sub-agent call, the exact `{ subAgent, task, context }` payload is
 written to `docs/requirements/<slug>/handoffs/<timestamp>-<subAgent>.json` —
 the orchestrator writes this itself with `Write` before each dispatch.
-Fallback: `logs/handoffs/` when the task slug cannot be inferred.
+Fallback: `harness/logs/handoffs/` when the task slug cannot be inferred.
 
 ## How Phase 4a is dispatched
 
@@ -226,7 +226,7 @@ commit. See CLAUDE.md § Phase 4b.
 | `README-HARNESS.md`         | This file — the harness's own documentation                                                                                         |
 | `.harness-version`          | Which tagged template snapshot this project was scaffolded from — set once at setup, not hand-edited after                         |
 | `.github/README.md`         | Short pointer to this file, so GitHub's front page renders something; delete it and write your own root `README.md`                 |
-| `diagrams/`                 | Workflow diagrams embedded above — hand-written SVG, no build step                                                                  |
+| `harness/diagrams/`         | Workflow diagrams embedded above — hand-written SVG, no build step                                                                  |
 | `CLAUDE.md`                 | Orchestrator runbook (always-loaded)                                                                                                |
 | `.claude/skills/`           | Plain-text skill content the orchestrator and `execute` read directly                                                               |
 | `.claude/commands/build.md` | Orchestrator prompt (the `/build` slash command)                                                                                    |
@@ -235,9 +235,11 @@ commit. See CLAUDE.md § Phase 4b.
 | `.claude/settings.json`     | Claude Code's own config (permission allowlist)                                                                                     |
 | `.claude/rules/`            | Project coding/security/git rules — load at 4a (execute) and 4b/5 (review), not Phase 1–3. Adjust the example paths to your project |
 | `CONTEXT.md` / `docs/adr/`  | Glossary and ADRs written during Phase 1                                                                                            |
-| `docs/requirements/<slug>/` | spec.md / tickets/*.md / review.md / handoffs/*.json per task                                                                       |
-| `logs/handoffs/`            | Fallback handoff logs when the task slug cannot be inferred                                                                         |
-| `logs/reports/`             | Per-ticket HTML test reports, written directly by `execute` (git-ignored)                                                           |
+| `docs/requirements/<slug>/` | spec.md / tickets/*.md / review.md / handoffs/*.json per task — real, live task output, not harness infra                          |
+| `harness/requirements-templates/` | Reference example of that same shape (spec.md, tickets/, review.md) — a template to read, not a task's own output              |
+| `harness/logs/handoffs/`    | Fallback handoff logs when the task slug cannot be inferred                                                                         |
+| `harness/logs/reports/`     | Per-ticket HTML test reports, written directly by `execute` (git-ignored)                                                           |
 | `LEARNING.md`               | Durable, curated lessons carried across runs                                                                                        |
+| `harness/prompts-templates/`| Fill-in templates for the `/build "<task description>"` argument itself — shrink Phase 1's frontier before grilling starts          |
 
 

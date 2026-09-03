@@ -1,6 +1,6 @@
 node_modules/
 dist/
-logs/handoffs/*.json
+harness/logs/handoffs/*.json
 # Generated report output — git-convention.md §5 forbids committing it.
-logs/reports/*.html
+harness/logs/reports/*.html
 .env

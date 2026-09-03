@@ -23,7 +23,7 @@
       "Edit(prisma/**)",
       "Write(tests/**)",
       "Edit(tests/**)",
-      "Write(logs/reports/**)",
+      "Write(harness/logs/reports/**)",
 
       "Bash(git status:*)",
       "Bash(git branch:*)",

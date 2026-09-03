@@ -8,7 +8,7 @@ set -euo pipefail
 HARNESS_DIR="$(cd "$(dirname "$0")" && pwd)"
 DEST="${1:-.}"
 
-for item in .claude .gitignore CLAUDE.md docs LEARNING.md logs README-HARNESS.md .harness-version; do
+for item in .claude .gitignore CLAUDE.md docs LEARNING.md README-HARNESS.md harness .harness-version; do
   cp -r "$HARNESS_DIR/$item" "$DEST/"
 done
 
