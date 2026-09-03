@@ -24,6 +24,7 @@
       "Write(tests/**)",
       "Edit(tests/**)",
       "Write(harness/logs/reports/**)",
+      "Write(harness/logs/handoffs/**)",
 
       "Bash(git status:*)",
       "Bash(git branch:*)",
