@@ -8,8 +8,8 @@ set -euo pipefail
 HARNESS_DIR="$(cd "$(dirname "$0")" && pwd)"
 DEST="${1:-.}"
 
-for item in .claude .gitignore CLAUDE.md docs LEARNING.md logs README-HARNESS.md; do
+for item in .claude .gitignore CLAUDE.md docs LEARNING.md logs README-HARNESS.md .harness-version; do
   cp -r "$HARNESS_DIR/$item" "$DEST/"
 done
 
-echo "Harness Framework installed into $(cd "$DEST" && pwd)"
+echo "Harness Framework $(cat "$HARNESS_DIR/.harness-version") installed into $(cd "$DEST" && pwd)"
