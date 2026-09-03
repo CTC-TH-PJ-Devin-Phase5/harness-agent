@@ -28,6 +28,12 @@ You cannot pause mid-task to wait on a human, so the orchestrator calls you
 
 ## Load your skills and rules first — before writing anything
 
+**This section is for an `action: "implement"` dispatch only.** On an
+`action: "commit"` dispatch you are only staging and committing already-
+approved changes, so `Read` just `.claude/rules/git-convention.md` — the
+rest of this section (skills, coding/security rules) doesn't apply to
+that call and reading it wastes a round-trip for no effect on what you do.
+
 Your role instructions come primarily from the `implement` skill, with
 `tdd` alongside it for test-first guidance, plus this harness's own rules.
 The Agent tool that dispatched you loads this file and grants tools, but
