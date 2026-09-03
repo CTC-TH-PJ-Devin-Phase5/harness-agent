@@ -77,18 +77,26 @@ That needs a git repo whose `main` already has **at least one commit** —
 `git init` alone leaves an unborn `main` that nothing can branch off, so the
 first commit is the part that actually matters.
 
-Starting a new project from this template:
+Starting a new project from this template — pin to the latest tagged
+release (`v1.0.0` as of writing; check `git tag` on the template repo for
+the current one) rather than whatever `main` happens to be, so every
+project scaffolded this way started from a known, reproducible snapshot:
 
 ```bash
-git clone <this-repo> my-project && cd my-project
+git clone --branch v1.0.0 <this-repo> my-project && cd my-project
 rm -rf .git && git init -b main
-git add -A && git commit -m "🎉 add: project scaffold from agent-harness-template"
+git add -A && git commit -m "🎉 add: project scaffold from agent-harness-template v1.0.0"
 ```
 
 The `rm -rf .git` is the point of that sequence: cloning hands you the
 template's own history and remote, and you almost certainly want neither in
 your project. Skip it and your first `/build` commits land on top of the
 template's commits, pointed at the template's origin.
+
+`.harness-version` comes along in that copy and stays in the project —
+it's the one line recording which template snapshot this project started
+from, so a later upgrade knows what to diff against. Keep it; don't hand-edit
+it outside of pulling in a newer template version.
 
 Then delete `.github/README.md` and write your project's own root
 `README.md`. That stub exists because GitHub renders a repo's front page
@@ -97,8 +105,8 @@ then the root, then `docs/` — there is no setting that points it at
 `README-HARNESS.md`. Putting the stub in `.github/` leaves the root
 `README.md` slot free for you, but it also **outranks** whatever you write
 there, so your front page keeps showing this template until you remove it.
-Keep this file along with `CLAUDE.md`, `.claude/` and `LEARNING.md` — those
-are the harness.
+Keep this file along with `CLAUDE.md`, `.claude/`, `LEARNING.md` and
+`.harness-version` — those are the harness.
 
 Then adjust `.claude/rules/` for your stack before the first `/build` — the
 `paths` globs and the example paths inside `coding-standard.md` §8/§10 are
@@ -216,6 +224,7 @@ commit. See CLAUDE.md § Phase 4b.
 | Path                        | Purpose                                                                                                                             |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
 | `README-HARNESS.md`         | This file — the harness's own documentation                                                                                         |
+| `.harness-version`          | Which tagged template snapshot this project was scaffolded from — set once at setup, not hand-edited after                         |
 | `.github/README.md`         | Short pointer to this file, so GitHub's front page renders something; delete it and write your own root `README.md`                 |
 | `diagrams/`                 | Workflow diagrams embedded above — hand-written SVG, no build step                                                                  |
 | `CLAUDE.md`                 | Orchestrator runbook (always-loaded)                                                                                                |
