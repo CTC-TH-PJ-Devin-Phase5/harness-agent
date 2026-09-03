@@ -47,7 +47,10 @@ criterion deciding which tickets additionally get `e2e`, and whether the
 e2e harness already exists — if it doesn't, standing it up is its own
 blocker ticket in Phase 3, not something a feature ticket absorbs. Keep
 the e2e suite scoped to a smoke pass over the flow: it's slow and flaky,
-and a big one burns 4a's two attempts on infrastructure noise.
+and a big one burns 4a's two attempts on infrastructure noise. `e2e` is
+opt-in — if a ticket's fit against the criterion is unclear, leave it off
+rather than adding it defensively; a missing `e2e` that should be there
+surfaces as a Phase 5 finding, not a silent risk.
 
 Gate: `docs/requirements/<slug>/spec.md` must exist, be non-empty, and
 name its test kinds + `e2e` criterion before proceeding.
@@ -65,8 +68,9 @@ application/production code.
 `**Test kinds:** unit, integration` (optionally `, e2e`) is a
 comma-separated declaration drawn from the spec's Testing Decisions.
 `unit, integration` goes on every ticket; add `e2e` only where the spec's
-criterion says so — normally the ticket that *closes* a user-visible flow,
-not every ticket in its chain. It's the human's call, approved with the
+criterion clearly says so, defaulting every other ticket to `unit,
+integration` alone — normally the ticket that *closes* a user-visible
+flow, not every ticket in its chain. It's the human's call, approved with the
 breakdown, and it's the field 4b and Phase 5 gate against.
 
 Gate: that tickets directory must exist with at least one ticket file,
