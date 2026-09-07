@@ -14,8 +14,6 @@ CONTEXT (already known — don't re-ask these):
 - Source of truth: FR §<x.x>, NFR §<x.x> (path: <docs/requirements-source>)
 - Stack/constraints: <framework>, follow the pattern already used in
   <existing module path> — don't introduce a new pattern for this
-- Connected-flow status: <state plainly whether front-end, back-end and
-  the database are already wired together end-to-end in this repo, or not>
 
 SCOPE:
 - In scope: <the specific endpoint(s)/screen(s)/component(s) this task
@@ -34,10 +32,6 @@ OPEN QUESTIONS (the real frontier — please grill me on these):
 - If `CONTEXT` and `SCOPE` are both filled in confidently and
   `OPEN QUESTIONS` is short, expect a fast Phase 1 — the frontier is
   mostly closed already.
-- Don't guess at `Connected-flow status` to make the section look
-  complete. Getting it wrong here means Phase 2 sets the wrong test-kind
-  floor, which either wastes an `integration` run against nothing or
-  silently skips coverage that should exist.
 - Leave `OPEN QUESTIONS` empty only if you mean it — grilling still runs
   and will surface anything you missed, but an honest list here means
   fewer surprise rounds.

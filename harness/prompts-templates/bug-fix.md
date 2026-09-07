@@ -17,7 +17,6 @@ CONTEXT (already known — don't re-ask these):
 - Expected behavior source: <spec section, prior ticket, or Acceptance
   Criteria that establishes what 'correct' actually looks like — don't
   rely on 'obviously it should X', cite where that's written down>
-- Connected-flow status: <state plainly>
 
 SCOPE:
 - In scope: fixing <symptom> only

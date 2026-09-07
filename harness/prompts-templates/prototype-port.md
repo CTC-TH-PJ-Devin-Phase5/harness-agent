@@ -17,7 +17,6 @@ CONTEXT (already known — don't re-ask these):
   from here, and nowhere else
 - Stack/constraints: <framework>, reuse existing components from
   <component library path> instead of hand-rolling new ones
-- Connected-flow status: <state plainly>
 
 SCOPE:
 - In scope: layout, spacing, color, copy, and component tree exactly as
@@ -55,6 +54,3 @@ Whatever ticket implements this, its Acceptance Criteria should require:
   default — a pixel-perfect port has very little that should be open. If
   you find yourself filling that section with design decisions, the task
   has drifted from "port" into "new feature" — use that template instead.
-- `Connected-flow status` still matters here even though the task is
-  visual: if the screen wires to real data, Phase 2 still needs to know
-  whether an `integration` test is possible yet.

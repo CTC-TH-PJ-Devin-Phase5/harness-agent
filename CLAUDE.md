@@ -24,7 +24,7 @@ You do this. Read and follow `.claude/skills/to-spec/SKILL.md`. Synthesize Phase
 - Write only `docs/requirements/<slug>/spec.md`. No application/production code.
 - Check seams with the human before writing the spec.
 - Use glossary vocabulary; respect ADRs.
-- The ticket execution gate is always `pnpm test:unit`. Spec `## Testing Decisions` still records what makes a good test, which modules, and prior art (the `to-spec` template). Do not assign `integration` or `e2e` as a Phase 4 gate.
+- The ticket execution gate is always `pnpm test:unit`. Spec `## Testing Decisions` still records what makes a good test, which modules, and prior art (the `to-spec` template).
 
 Gate: `docs/requirements/<slug>/spec.md` exists and is non-empty.
 
@@ -34,7 +34,7 @@ You do this. Read and follow `.claude/skills/to-tickets/SKILL.md`. Break the spe
 
 - Quiz the human on the breakdown (granularity, blocking edges, merge/split) and iterate until they approve.
 - Write **one file per ticket** at `docs/requirements/<slug>/tickets/<NN>-<ticket-slug>.md`, numbered from `01`, blockers first. No application/production code.
-- Each file must include: title, status, related spec section, acceptance criteria, **Depends on** (blocking edges), attempts counter starting at `0/2`, and an empty `## Execution log`. The ticket gate is always `pnpm test:unit` — do not add a `Test kinds` field.
+- Each file must include: title, status, related spec section, acceptance criteria, **Depends on** (blocking edges), attempts counter starting at `0/2`, and an empty `## Execution log`. The ticket gate is always `pnpm test:unit`.
 
 Gate: that tickets directory has at least one ticket file, and the human approved the breakdown.
 

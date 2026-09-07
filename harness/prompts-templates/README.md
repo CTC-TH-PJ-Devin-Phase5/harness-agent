@@ -23,10 +23,6 @@ GOAL: <one-line, user-visible outcome>
 CONTEXT (already known — don't re-ask these):
 - Source of truth: <prototype files, FR/NFR doc sections, existing ADRs>
 - Stack/constraints: <existing patterns and libraries to reuse>
-- Connected-flow status: <does a real front-end↔back-end↔database flow
-  already exist in this repo? — feeds straight into CLAUDE.md's test-kind
-  floor policy (`unit` alone vs `unit, integration`), so answering it here
-  saves Phase 2 from asking>
 
 SCOPE:
 - In scope: <bullets>

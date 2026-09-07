@@ -41,8 +41,7 @@ the human before writing. No application/production code.
 
 The ticket execution gate is always `pnpm test:unit`. Spec `## Testing
 Decisions` still records what makes a good test, which modules, and prior
-art (the `to-spec` template). Do not assign `integration` or `e2e` as a
-Phase 4 gate.
+art (the `to-spec` template).
 
 Gate: `docs/requirements/<slug>/spec.md` must exist and be non-empty
 before proceeding.
@@ -55,8 +54,7 @@ Write one file per ticket under
 `docs/requirements/<slug>/tickets/<NN>-<ticket-slug>.md`. Each file:
 title, status, related spec section, acceptance criteria, Depends on,
 attempts `0/2`, empty `## Execution log`. The ticket gate is always
-`pnpm test:unit` — do not add a `Test kinds` field. No
-application/production code.
+`pnpm test:unit`. No application/production code.
 
 Gate: that tickets directory must exist with at least one ticket file,
 and the human must have approved the breakdown, before proceeding.
