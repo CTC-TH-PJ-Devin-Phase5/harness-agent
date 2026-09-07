@@ -51,7 +51,7 @@ rect{stroke-width:1.5}
 <line class="ln" x1="200" y1="304" x2="200" y2="328" marker-end="url(#ae)"/>
 
 <rect class="bh" x="50" y="328" width="300" height="32" rx="16"/>
-<text class="sb sh" x="200" y="344" text-anchor="middle" dominant-baseline="central">gate: spec.md written, test kinds set</text>
+<text class="sb sh" x="200" y="344" text-anchor="middle" dominant-baseline="central">gate: spec.md written</text>
 <line class="ln" x1="200" y1="360" x2="200" y2="384" marker-end="url(#ae)"/>
 
 <rect class="bo" x="40" y="384" width="320" height="64" rx="4"/>
@@ -60,7 +60,7 @@ rect{stroke-width:1.5}
 <line class="ln" x1="360" y1="416" x2="384" y2="416" marker-end="url(#ae)"/>
 <rect class="bn" x="384" y="392" width="256" height="48" rx="4"/>
 <text class="sb tn" x="512" y="410" text-anchor="middle" dominant-baseline="central">tickets/&lt;NN&gt;-&lt;slug&gt;.md</text>
-<text class="sb sn" x="512" y="428" text-anchor="middle" dominant-baseline="central">each declares test kinds</text>
+<text class="sb sn" x="512" y="428" text-anchor="middle" dominant-baseline="central">one file per ticket</text>
 <line class="ln" x1="200" y1="448" x2="200" y2="472" marker-end="url(#ae)"/>
 
 <rect class="bh" x="50" y="472" width="300" height="32" rx="16"/>
@@ -73,7 +73,7 @@ rect{stroke-width:1.5}
 <line class="ln" x1="360" y1="560" x2="384" y2="560" marker-end="url(#ae)"/>
 <rect class="bn" x="384" y="536" width="256" height="48" rx="4"/>
 <text class="sb tn" x="512" y="554" text-anchor="middle" dominant-baseline="central">one task branch, commit per ticket</text>
-<text class="sb sn" x="512" y="572" text-anchor="middle" dominant-baseline="central">logs/reports/&lt;ticket&gt;.html</text>
+<text class="sb sn" x="512" y="572" text-anchor="middle" dominant-baseline="central">pnpm test:unit · Execution log</text>
 <line class="ln" x1="200" y1="592" x2="200" y2="616" marker-end="url(#ae)"/>
 
 <rect class="bh" x="50" y="616" width="300" height="32" rx="16"/>

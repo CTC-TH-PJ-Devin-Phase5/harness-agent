@@ -84,7 +84,6 @@ reason. When present:
 ## 5. Scope
 
 - One logical change per commit. Do not mix a refactor with a behaviour change.
-- Never commit generated report output — see `.gitignore`.
 - Never commit secrets, tokens, credentials, or `.env` files.
 - Never commit directly to `main`. Every commit lands on the **task branch**
   (`<slug>`, the requirements directory's own name, created per

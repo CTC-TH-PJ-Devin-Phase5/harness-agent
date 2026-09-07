@@ -35,7 +35,7 @@ rect{stroke-width:1.5}
 
 <rect class="be" x="40" y="96" width="330" height="82" rx="4"/>
 <text class="ti te" x="205" y="116" text-anchor="middle" dominant-baseline="central">4a implement — execute</text>
-<text class="sb se" x="205" y="137" text-anchor="middle" dominant-baseline="central">branch, code, run declared kinds</text>
+<text class="sb se" x="205" y="137" text-anchor="middle" dominant-baseline="central">branch, code, run pnpm test:unit</text>
 <text class="sb se" x="205" y="158" text-anchor="middle" dominant-baseline="central">stops uncommitted, max 2 attempts</text>
 <line class="ln" x1="370" y1="137" x2="396" y2="137" marker-end="url(#ae)" marker-start="url(#as)"/>
 <rect class="bf" x="396" y="104" width="244" height="66" rx="4"/>
