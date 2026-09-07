@@ -23,7 +23,7 @@ The same flow as text, with the retry and stop paths spelled out
   │
   ▼
 Phase 1 — Grill (`grill-with-docs`) — orchestrator ↔ you, no skip/timeout
-           grilling + domain-modeling → notes, CONTEXT.md, docs/adr/
+           grilling + domain-modeling → notes, docs/CONTEXT.md, docs/adr/
   ▼
 Phase 2 — Spec (`to-spec`) — orchestrator
            docs/requirements/<slug>/spec.md
@@ -197,7 +197,7 @@ commit. See CLAUDE.md § Phase 4b.
 | `.claude/harness.json`      | Harness config: `execution.mode`, `permissions` (mirrors `execute.md`'s tool scope), `approval.autoApprove`                         |
 | `.claude/settings.json`     | Claude Code's own config (permission allowlist)                                                                                     |
 | `.claude/rules/`            | Project coding/security/git rules — load at 4a (execute) and 4b/5 (review), not Phase 1–3. Adjust the example paths to your project |
-| `CONTEXT.md` / `docs/adr/`  | Glossary and ADRs written during Phase 1                                                                                            |
+| `docs/CONTEXT.md` / `docs/adr/` | Glossary and ADRs written during Phase 1                                                                                      |
 | `docs/requirements/<slug>/` | spec.md / tickets/*.md / review.md / handoffs/*.json per task — real, live task output, not harness infra                          |
 | `harness/requirements-templates/` | Reference example of that same shape (spec.md, tickets/, review.md) — a template to read, not a task's own output              |
 | `harness/logs/handoffs/`    | Fallback handoff logs when the task slug cannot be inferred                                                                         |

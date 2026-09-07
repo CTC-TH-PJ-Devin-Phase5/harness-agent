@@ -9,7 +9,7 @@ On every `/build` (or any request to implement through this harness), read `LEAR
 Read and follow `.claude/skills/grill-with-docs/SKILL.md`. That skill loads `grilling` and `domain-modeling` — do both on this thread. Not a sub-agent: sub-agents cannot pause for the human.
 
 - Interview in rounds until the frontier is empty and the human confirms shared understanding.
-- Write `CONTEXT.md` (glossary) and `docs/adr/` as terms and decisions crystallise — do not batch them.
+- Write `docs/CONTEXT.md` (glossary) and `docs/adr/` as terms and decisions crystallise — do not batch them.
 - Confirm the ticket gate command is `pnpm test:unit`. If that script is missing, that gap is a Phase 3 blocker ticket — not something `execute` substitutes with another suite.
 - Hand grilling notes (decisions, terminology, scope boundaries) plus those docs to Phase 2.
 
@@ -19,7 +19,7 @@ Gate: human confirmed shared understanding; grilling notes exist; glossary/ADRs 
 
 ## Phase 2 — Spec (`to-spec`)
 
-You do this. Read and follow `.claude/skills/to-spec/SKILL.md`. Synthesize Phase 1 (grilling notes, `CONTEXT.md`, ADRs) into a spec — do not re-interview.
+You do this. Read and follow `.claude/skills/to-spec/SKILL.md`. Synthesize Phase 1 (grilling notes, `docs/CONTEXT.md`, ADRs) into a spec — do not re-interview.
 
 - Write only `docs/requirements/<slug>/spec.md`. No application/production code.
 - Check seams with the human before writing the spec.
@@ -118,7 +118,7 @@ Never send the sub-agent your raw conversation history — only the payload belo
 
 **`task` must be self-contained, not a one-liner.** `execute` sees nothing you saw in Phase 1–3 except what's in `task` and `context`. A short prompt ("implement ticket 03") forces `execute` to guess scope from the ticket file alone — exactly the kind of guess that produces scope drift the orchestrator is supposed to have already resolved by grilling. Every `task` string must spell out, inline:
 - The acceptance criteria for this ticket, copied in — not just a path to go read.
-- The specific `spec.md` section(s) this ticket implements, and any constraint from `CONTEXT.md`/`docs/adr/` that bears on it.
+- The specific `spec.md` section(s) this ticket implements, and any constraint from `docs/CONTEXT.md`/`docs/adr/` that bears on it.
 - Any prototype, sketch, or reference artifact from Phase 1 grilling that shows the intended shape (state the artifact's path or content explicitly — never assume `execute` will find or infer it).
 - The test gate: `pnpm test:unit`. If that script is missing, that is a blocker — `execute` must not substitute another suite.
 - **Which of `security-backend.md` / `security-frontend.md` (or both) this ticket needs**, per `execute.md`'s path-conditional rule loading — you already know this ticket's surface from writing it in Phase 3, so decide it here rather than leaving `execute` to guess.
@@ -158,6 +158,7 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 - `.claude/skills/to-tickets/SKILL.md` — Phase 3 vertical slices and ticket template.
 - `.claude/skills/code-review/SKILL.md` — Phase 4b per-ticket review and Phase 5 whole-task review.
 - `.claude/skills/create-pr/SKILL.md` — after Phase 5 approval: what you recommend, and what the human runs. You never run it.
+- `docs/CONTEXT.md` — domain glossary written during Phase 1.
 - `docs/requirements/<slug>/handoffs/` — exact context sent to each sub-agent.
 - `.claude/harness.json` — `execution.mode`, `permissions` (mirrors `execute.md`'s `tools:` frontmatter), `approval.autoApprove` (must stay `false`). (Claude Code's own settings live in `.claude/settings.json`.)
 - `LEARNING.md` — prior-run lessons; read at `/build` start and before each execute ticket.

@@ -5,8 +5,8 @@
       "Glob",
       "Grep",
 
-      "Write(CONTEXT.md)",
-      "Edit(CONTEXT.md)",
+      "Write(docs/CONTEXT.md)",
+      "Edit(docs/CONTEXT.md)",
       "Write(docs/adr/**)",
       "Edit(docs/adr/**)",
       "Write(docs/requirements/**)",

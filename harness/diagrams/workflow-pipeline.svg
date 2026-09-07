@@ -33,7 +33,7 @@ rect{stroke-width:1.5}
 <text class="sb so" x="200" y="140" text-anchor="middle" dominant-baseline="central">interview until frontier empty</text>
 <line class="ln" x1="360" y1="128" x2="384" y2="128" marker-end="url(#ae)"/>
 <rect class="bn" x="384" y="104" width="256" height="48" rx="4"/>
-<text class="sb tn" x="512" y="122" text-anchor="middle" dominant-baseline="central">CONTEXT.md · docs/adr/</text>
+<text class="sb tn" x="512" y="122" text-anchor="middle" dominant-baseline="central">docs/CONTEXT.md · docs/adr/</text>
 <text class="sb sn" x="512" y="140" text-anchor="middle" dominant-baseline="central">glossary and decisions</text>
 <line class="ln" x1="200" y1="160" x2="200" y2="184" marker-end="url(#ae)"/>
 
