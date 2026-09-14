@@ -178,7 +178,13 @@ injects **no skill or rule content** — it loads the role file and grants
 tools, full stop. So `execute` Reads `.claude/skills/{implement,tdd}/SKILL.md`
 and `.claude/rules/*.md` itself, as the top of `.claude/agents/execute.md`
 instructs — a sub-agent that never reads its own rules looks identical to one
-following them, so there is no injection step to fall back on here.[tanaka@acme.co](mailto:tanaka@acme.co)
+following them, so there is no injection step to fall back on here.
+
+You stay in the orchestrator chat. On hosts that surface subagents in the UI
+(e.g. Cursor), click the `execute` card or link to open its transcript
+(tool calls, tests, diffs) as a read-only drill-in; use Back / History to
+return before answering the 4b approval ask. That is not a separate Agent
+chat — prompts still go through the orchestrator.
 
 `execute` cannot pause mid-task for a human answer, so the orchestrator
 dispatches it **twice per ticket**: once to implement and test (stopping
