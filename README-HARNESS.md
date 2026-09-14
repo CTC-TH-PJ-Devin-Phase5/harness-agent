@@ -43,16 +43,19 @@ Phase 4 — per ticket, dependency order:
                then asks you, in chat, for approval to commit (blocking, no skip)
                approved → handoff log → execute, commit dispatch → commit
            4c  orchestrator checks `- [x]` on confirmed AC, then Status: done
+               then recommends /create-pr (reviewer window, non-blocking —
+               you run it; orchestrator does not wait)
            rejected approval / unmet AC → STOP, ask you
   ▼
 Phase 5 — Review (whole task) vs spec + every ticket's AC
-           docs/requirements/<slug>/review.md
+           docs/requirements/<slug>/review.md (Human decision unchecked)
   ▼
 You approve/reject (manual, always)
-  ├─ Approve → lessons appended to LEARNING.md, then the orchestrator
-  │            recommends /create-pr (push <slug> + PR vs main — you run it)
-  └─ Reject  → uncheck implicated AC, re-run Phase 4 for those tickets only,
-               loop back to Phase 5
+  ├─ Approve → tick Approved in review.md, lessons appended to LEARNING.md,
+  │            then the orchestrator recommends /create-pr (ready path —
+  │            you run it)
+  └─ Reject  → tick Rejected, uncheck implicated AC, re-run Phase 4 for
+               those tickets only, loop back to Phase 5
 ```
 
 
@@ -65,10 +68,12 @@ directly and keep it in step with `CLAUDE.md` when a phase or gate changes).
 
 Phase 4 is branch-per-**task**, not per ticket: the first ticket runs
 `git checkout -b <slug> main` and every later ticket in the task just checks
-that same branch out, landing one commit each. So a task with eight tickets
-produces one branch and eight commits, and the review fixed points fall out of
-that — `git diff HEAD` for a single ticket in 4b (earlier tickets are already
-committed), `git diff main...HEAD` for the whole task in Phase 5.
+that same branch out, landing one implementation commit each. So a task
+with eight tickets produces one branch and eight implementation commits
+(`/create-pr` may add harness-doc commits when you run it), and the
+review fixed points fall out of that — `git diff HEAD` for a single ticket
+in 4b (earlier tickets are already committed), `git diff main...HEAD` for
+the whole task in Phase 5.
 
 That needs a git repo whose `main` already has **at least one commit** —
 `git init` alone leaves an unborn `main` that nothing can branch off, so the

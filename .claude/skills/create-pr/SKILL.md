@@ -1,3 +1,9 @@
+---
+name: create-pr
+description: "Push the task branch and open or update the PR against main. Human-invoked; the orchestrator only recommends it."
+disable-model-invocation: true
+---
+
 # Skill: create-pr
 
 <!-- Local, hand-authored skill specific to this harness, not fetched from
@@ -5,21 +11,26 @@
 
 ## Purpose
 
-Prepare completed work for code review by committing changes, pushing the current branch, and creating a Pull Request.
+Push the current branch and open or update **one** Pull Request against `main`, so reviewers can comment. A human invokes this. The harness orchestrator only recommends it.
 
 ## Where this fits in the harness
 
-This is the step **after** the harness, not part of it. The orchestrator recommends it once the human approves Phase 5 (CLAUDE.md § Phase 5) and stops there — it never runs this skill itself, because `git push` is denied to it and a PR is outward-facing. **A human invokes this.**
+The orchestrator points here after every ticket's 4c (reviewer window) and again after Phase 5 approve (merge-ready). It never runs this skill: `git push` is denied to it, and a PR is outward-facing.
 
-Invoked that way, steps 1–3 below are already satisfied and should come out as no-ops:
+**Mode comes from the environment**, not from a flag:
 
-- the current branch is the task branch `<slug>`, carrying one commit per completed ticket;
-- each of those commits already passed its own review and explicit human approval in Phase 4b, and already follows `git-convention.md`;
-- every ticket's `pnpm test:unit` already passed on its final attempt, recorded in the ticket's `## Execution log`.
+- **Ready** — `docs/requirements/<slug>/review.md` has `- [x] Approved` under `### Human decision`.
+- **Draft** — that file is missing, the Approved box is unchecked, or Rejected is the recorded decision.
 
-So confirm them rather than redoing them (a dirty working tree or an unexpected commit means something is wrong — stop and say so), then do steps 4–5. Build the PR body from `docs/requirements/<slug>/review.md` plus `spec.md`, and cite the ticket files for what each commit did.
+`<slug>` is the current branch name (the task branch). Confirm you are not on `main`.
 
-Outside `/build` — an ordinary branch with no harness artifacts — run all five steps as written, with `sdlc-checklist` as the pre-PR gate.
+Outside `/build` — an ordinary branch with no `docs/requirements/<slug>/` artifacts — run all five steps as written, with `sdlc-checklist` as the pre-PR gate.
+
+## Harness docs on a dirty tree
+
+Implementation commits already landed in Phase 4 (one per ticket). After 4c and Phase 5 the working tree may still hold harness docs the orchestrator wrote: ticket markdown (`Status: done`, AC checkboxes), `review.md`, `LEARNING.md`, and handoffs.
+
+If the dirty paths are **only** under `docs/requirements/<slug>/` and/or `LEARNING.md`, commit them on this branch per `git-convention.md`, then continue. If any other path is dirty, stop and say so — do not mix application diffs into this commit.
 
 ## Workflow
 
@@ -34,27 +45,48 @@ Outside `/build` — an ordinary branch with no harness artifacts — run all fi
    - Ensure the application builds successfully.
 
 3. Commit:
-   - Commit changes to the current branch.
+   - Commit harness-doc changes (see above) to the current branch.
    - Follow this repo's `git-convention.md` rule (Gitmoji subject format), not generic conventional-commit prefixes.
    - Do not commit directly to `main`.
 
 4. Push:
    - Push the current branch to the remote repository.
 
-5. Create Pull Request:
-   - Create a Pull Request targeting the `main` branch.
-   - Include:
-     - Summary of changes
-     - Key implementation details
-     - Testing performed
-     - Migration/setup notes if applicable
+5. Open or update the Pull Request:
+   - Target `main`.
+   - One PR per task branch: if a PR for this head already exists, update it; never open a second one.
+
+### Draft path (reviewer window)
+
+Skip step 2. `pnpm test:unit` already passed in 4a; this invocation is so reviewers can comment, not to run CI.
+
+Then: step 3 if harness docs are dirty, step 4, then step 5 as **draft**.
+
+- No PR yet → create it as a draft.
+- PR exists → update its body, leave it draft (`gh pr ready` stays for the ready path).
+
+**Body** (rebuild every draft invocation):
+
+- Spec title / goal, from `docs/requirements/<slug>/spec.md`.
+- One bullet per ticket whose `Status` is `done`: title plus a short AC summary.
+- Pointers to `spec.md` and the ticket files on the branch.
+- `pnpm test:unit` results cited from each done ticket's `## Execution log`.
+
+### Ready path (Phase 5 approved)
+
+Run steps 3 → 2 → 4 → 5. If step 2 fails, stop: do not push, do not mark the PR ready.
+
+**Body** from `docs/requirements/<slug>/review.md` plus `spec.md`, citing the ticket files for what each commit did.
+
+- No PR yet → create it ready (not draft).
+- PR exists → replace the body, then mark it ready for review.
 
 ## Rules
 
 - Never merge the Pull Request.
 - Do not push directly to `main`.
-- Leave the PR ready for manual review and merge via GitHub console.
+- One PR per task branch; update the existing one.
 - Keep commits focused and meaningful.
 - Do not include unrelated changes.
-- Do not bypass failing tests.
-- Ensure the working tree is clean before finishing.
+- Do not bypass failing tests (ready path).
+- Working tree clean before finishing.

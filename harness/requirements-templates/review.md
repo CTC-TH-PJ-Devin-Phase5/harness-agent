@@ -15,5 +15,10 @@
 
 ### Human decision
 
+<!-- Orchestrator leaves both unchecked when writing this file. Tick
+     Approved only after the human says yes in Phase 5 — that checked
+     box is what `/create-pr` reads as the ready path. Tick Rejected
+     on a no, and do not mark the PR ready. -->
+
 - [ ] Approved
 - [ ] Rejected — feedback:

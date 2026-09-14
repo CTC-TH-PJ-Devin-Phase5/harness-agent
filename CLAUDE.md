@@ -80,6 +80,8 @@ If the review is clean, the human approval gate is yours to run, directly in thi
 
 Once the commit dispatch above succeeds, mark `- [x]` each criterion your review confirmed in that ticket file. Leave unmet criteria as `- [ ]`. Only then mark `Status` done.
 
+Then **recommend `/create-pr`**: name the task branch `<slug>` and the target `main`, and point at `.claude/skills/create-pr/SKILL.md`. That utterance is 4c's last completion criterion — send it before the next implement dispatch. It is a reviewer window, not a fifth gate: do not wait for the human to run it, and do not run it yourself (see **Recommend `/create-pr`** below).
+
 **Hard stop — do not dispatch the next ticket's implement call until all four are true:**
 1. The human gave an explicit yes to the approval ask in 4b, in this chat, for this ticket.
 2. The commit dispatch (`action: "commit"`) returned a real commit hash, and you recorded it in the ticket file.
@@ -88,25 +90,25 @@ Once the commit dispatch above succeeds, mark `- [x]` each criterion your review
 
 There is no "review looked fine, moving on" shortcut — a clean review only authorizes the approval *ask*, not the move to the next ticket. If any of the four is missing, you are mid-ticket, not between tickets: stay here and resolve it (or stop, per below) before touching ticket N+1.
 
-- All four true → next ticket.
+- All four true **and** the `/create-pr` rec uttered → next ticket.
 - Two failed test attempts, review finds a miss, human rejects the approval, or any AC still unchecked → stop the whole task, tell the human which ticket/criteria and why, wait.
 
-The tip of the work lives on the task branch `<slug>` — one commit per completed ticket, in order — not on `main`.
+The tip of the work lives on the task branch `<slug>` — one implementation commit per completed ticket, in order — not on `main`.
 
 ## Phase 5 — Review (whole task)
 
-Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the task branch `<slug>` (fixed point: `git diff main...HEAD`) against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
+Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the task branch `<slug>` (fixed point: `git diff main...HEAD`) against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md` with **both** `### Human decision` boxes unchecked. Present a summary and ask approve/reject. Wait for an explicit human answer.
 
 Confirm every ticket's own `## Execution log` table shows a passing final `pnpm test:unit` attempt, and cite that log in `review.md`. Call out explicitly any ticket whose log doesn't show unit passing, or where the log is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
 
-- Approve → append a dated lessons section to `LEARNING.md`, then **recommend opening the PR with the `create-pr` skill** (see below). Stop.
-- Reject → uncheck the implicated AC, re-run Phase 4 for those tickets only, then Phase 5 again.
+- Approve → tick `- [x] Approved` in that `review.md`, append a dated lessons section to `LEARNING.md`, then recommend `/create-pr` (ready path: body from `review.md`, mark the existing draft ready — or open ready if none exists). Stop.
+- Reject → tick `- [x] Rejected` in that file, uncheck the implicated AC, re-run Phase 4 for those tickets only, then Phase 5 again.
 
-### After approval — recommend the PR, don't open it
+### Recommend `/create-pr`
 
-The harness ends at an approved task branch; it does not merge. So once `LEARNING.md` is written, close out by pointing the human at `.claude/skills/create-pr/SKILL.md`: name the task branch `<slug>`, the target (`main`), the commit count (one per ticket), and `docs/requirements/<slug>/review.md` as the material for the PR body. Say that steps 1–3 of that skill (review the diff, validate, commit) are already satisfied — Phase 4 committed every ticket after its own approval gate and the working tree is clean — so only its steps 4–5 remain: push the branch and open the PR against `main`.
+Point the human at `.claude/skills/create-pr/SKILL.md` after 4c and after Phase 5 approve. Name the task branch `<slug>` and the target (`main`). The skill picks draft vs ready from `review.md`'s Approved box — that file is the source of truth, so the orchestrator does not inspect GitHub.
 
-**Recommending is where your job ends. Do not run it yourself**: `git push` is denied to you, opening a PR publishes outward-facing content, and merging is out of scope for this harness (`create-pr` § Rules forbids it too). The human invokes `/create-pr` themselves, or opens the PR by hand — either way that is a fresh decision they make after approving, not something the approval already authorized.
+The harness ends at an approved task branch; it does not merge. **Recommending is where your job ends.** `git push` is denied to you, a PR is outward-facing, and merging is out of scope (`create-pr` § Rules). The human invokes `/create-pr` themselves, or opens the PR by hand — a fresh decision, not something 4b or Phase 5 approval already authorized.
 
 ## Delegation
 
@@ -157,7 +159,7 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 - `.claude/skills/to-spec/SKILL.md` — Phase 2 spec template and process.
 - `.claude/skills/to-tickets/SKILL.md` — Phase 3 vertical slices and ticket template.
 - `.claude/skills/code-review/SKILL.md` — Phase 4b per-ticket review and Phase 5 whole-task review.
-- `.claude/skills/create-pr/SKILL.md` — after Phase 5 approval: what you recommend, and what the human runs. You never run it.
+- `.claude/skills/create-pr/SKILL.md` — after 4c (draft reviewer window) and after Phase 5 approve (ready): what you recommend, and what the human runs. You never run it. The skill's draft vs ready split lives there.
 - `docs/CONTEXT.md` — domain glossary written during Phase 1.
 - `docs/requirements/<slug>/handoffs/` — exact context sent to each sub-agent.
 - `.claude/harness.json` — `execution.mode`, `permissions` (mirrors `execute.md`'s `tools:` frontmatter), `approval.autoApprove` (must stay `false`). (Claude Code's own settings live in `.claude/settings.json`.)

@@ -124,7 +124,10 @@ task branch, per `git-convention.md`. Rejected → stop (see below); do not comm
 
 **4c Check Acceptance Criteria** — once the commit dispatch succeeds, mark
 `- [x]` each criterion the review confirmed. Leave unmet criteria as
-`- [ ]`. Only then mark `Status` done and move to the next ticket. Do not
+`- [ ]`. Only then mark `Status` done. Then recommend `/create-pr` (name
+`<slug>` and `main`, point at `.claude/skills/create-pr/SKILL.md`) and
+move to the next ticket. That rec is a reviewer window, not a gate: do
+not wait for the human to run it, and do not run it yourself. Do not
 move on before all four are true: human said yes, commit hash recorded,
 AC checked to match what review confirmed, `Status` set to done.
 
@@ -132,8 +135,8 @@ AC checked to match what review confirmed, `Status` set to done.
   approval, or any AC still unchecked → **STOP the entire task
   immediately.** Tell the human which ticket/criteria and why, and wait.
 
-The tip of the work-so-far lives on the task branch `<slug>` — one commit
-per completed ticket — not on `main`.
+The tip of the work-so-far lives on the task branch `<slug>` — one
+implementation commit per completed ticket — not on `main`.
 
 ## Phase 5 — Review (whole task, you do this yourself)
 
@@ -142,7 +145,8 @@ content to compare the final state against `spec.md` + every ticket's
 acceptance criteria. Confirm the `[x]` marks still match the code. The
 "final state" is the task branch `<slug>` (fixed point `git diff
 main...HEAD`). Write
-your findings to `docs/requirements/<slug>/review.md`.
+your findings to `docs/requirements/<slug>/review.md` with both
+`### Human decision` boxes unchecked.
 
 Confirm every ticket's own `## Execution log` table shows a passing
 final `pnpm test:unit` attempt, and cite that log in `review.md`. Call
@@ -152,17 +156,18 @@ entirely (that one's tests were never recorded — unverified).
 Present a summary to the human and ask for approve/reject. **Never
 auto-approve.**
 
-- **Approve** → task is done. Append a dated lessons section to
-  `LEARNING.md` (see its format). Then **recommend the PR**: point the
-  human at `.claude/skills/create-pr/SKILL.md`, naming the task branch
-  `<slug>`, the target `main`, and `docs/requirements/<slug>/review.md` as
-  the PR body's material. That skill's steps 1–3 (review, validate,
-  commit) are already satisfied by Phase 4, so only push + open-PR remain.
-  **Do not run it yourself** — `git push` is denied to you, a PR is
-  outward-facing, and this harness never merges. The human invokes
-  `/create-pr` or opens the PR by hand. Then stop.
-- **Reject** → uncheck the implicated AC, re-run Phase 4 for those
-  tickets only, then loop back to Phase 5.
+- **Approve** → tick `- [x] Approved` in that `review.md`. Append a
+  dated lessons section to `LEARNING.md` (see its format). Then
+  **recommend `/create-pr`**: point the human at
+  `.claude/skills/create-pr/SKILL.md`, naming the task branch `<slug>`
+  and the target `main`. The skill takes the ready path from that
+  Approved box (body from `review.md`, mark ready — or open ready if
+  none exists). **Do not run it yourself** — `git push` is denied to
+  you, a PR is outward-facing, and this harness never merges. The
+  human invokes `/create-pr` or opens the PR by hand. Then stop.
+- **Reject** → tick `- [x] Rejected` in that file, uncheck the
+  implicated AC, re-run Phase 4 for those tickets only, then loop back
+  to Phase 5.
 
 ## Constraints, repeated because they matter
 

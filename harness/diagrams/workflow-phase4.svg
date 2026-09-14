@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="680" height="644" viewBox="0 0 680 644" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="732" viewBox="0 0 680 732" role="img">
 <title>Phase 4 per-ticket loop with two execute dispatches</title>
-<desc>One ticket flows through 4a implement by the execute sub-agent, then 4b review by the orchestrator, then a blocking human approval, then a second execute dispatch that commits, then 4c acceptance-criteria checking. Failure paths on the right show the single retry inside 4a and the conditions that stop the whole ticket.</desc>
+<desc>One ticket flows through 4a implement by the execute sub-agent, then 4b review by the orchestrator, then a blocking human approval, then a second execute dispatch that commits, then 4c acceptance-criteria checking, then a non-blocking /create-pr recommendation before the next ticket. Failure paths on the right show the single retry inside 4a and the conditions that stop the whole ticket.</desc>
 <style>
 text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
 rect{stroke-width:1.5}
@@ -27,7 +27,7 @@ rect{stroke-width:1.5}
 <marker id="as" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path class="ah" d="M0 0 L10 5 L0 10 z"/></marker>
 </defs>
 
-<rect class="bg" x="0" y="0" width="680" height="644"/>
+<rect class="bg" x="0" y="0" width="680" height="732"/>
 
 <rect class="bn" x="55" y="40" width="300" height="32" rx="16"/>
 <text class="sb sn" x="205" y="56" text-anchor="middle" dominant-baseline="central">ticket NN — dependency order</text>
@@ -67,15 +67,20 @@ rect{stroke-width:1.5}
 <text class="sb so" x="205" y="510" text-anchor="middle" dominant-baseline="central">then status: done</text>
 <line class="ln" x1="205" y1="530" x2="205" y2="554" marker-end="url(#ae)"/>
 
-<rect class="bn" x="55" y="554" width="300" height="32" rx="16"/>
-<text class="sb sn" x="205" y="570" text-anchor="middle" dominant-baseline="central">next ticket, or phase 5</text>
+<rect class="bo" x="40" y="554" width="330" height="64" rx="4"/>
+<text class="ti to" x="205" y="576" text-anchor="middle" dominant-baseline="central">recommend /create-pr</text>
+<text class="sb so" x="205" y="598" text-anchor="middle" dominant-baseline="central">reviewer window, non-blocking</text>
+<line class="ln" x1="205" y1="618" x2="205" y2="642" marker-end="url(#ae)"/>
 
-<rect class="bo" x="40" y="612" width="12" height="12" rx="2"/>
-<text class="sb sn" x="57" y="618" dominant-baseline="central">orchestrator</text>
-<rect class="be" x="155" y="612" width="12" height="12" rx="2"/>
-<text class="sb sn" x="172" y="618" dominant-baseline="central">execute sub-agent</text>
-<rect class="bh" x="300" y="612" width="12" height="12" rx="2"/>
-<text class="sb sn" x="317" y="618" dominant-baseline="central">human gate (blocking)</text>
-<rect class="bf" x="470" y="612" width="12" height="12" rx="2"/>
-<text class="sb sn" x="487" y="618" dominant-baseline="central">failure path</text>
+<rect class="bn" x="55" y="642" width="300" height="32" rx="16"/>
+<text class="sb sn" x="205" y="658" text-anchor="middle" dominant-baseline="central">next ticket, or phase 5</text>
+
+<rect class="bo" x="40" y="700" width="12" height="12" rx="2"/>
+<text class="sb sn" x="57" y="706" dominant-baseline="central">orchestrator</text>
+<rect class="be" x="155" y="700" width="12" height="12" rx="2"/>
+<text class="sb sn" x="172" y="706" dominant-baseline="central">execute sub-agent</text>
+<rect class="bh" x="300" y="700" width="12" height="12" rx="2"/>
+<text class="sb sn" x="317" y="706" dominant-baseline="central">human gate (blocking)</text>
+<rect class="bf" x="470" y="700" width="12" height="12" rx="2"/>
+<text class="sb sn" x="487" y="706" dominant-baseline="central">failure path</text>
 </svg>

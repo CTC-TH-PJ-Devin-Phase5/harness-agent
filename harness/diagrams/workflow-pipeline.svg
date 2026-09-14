@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="680" height="888" viewBox="0 0 680 888" role="img">
 <title>The harness's five-phase pipeline</title>
-<desc>A top-down flow from the /build command through Phase 1 grill, Phase 2 spec, Phase 3 tickets, Phase 4 per-ticket execution and Phase 5 whole-task review, with a blocking human gate between each phase and the artifact each phase writes shown to the right.</desc>
+<desc>A top-down flow from the /build command through Phase 1 grill, Phase 2 spec, Phase 3 tickets, Phase 4 per-ticket execution with a non-blocking /create-pr recommendation after each ticket, and Phase 5 whole-task review, with a blocking human gate between each phase and the artifact each phase writes shown to the right.</desc>
 <style>
 text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
 rect{stroke-width:1.5}
@@ -69,7 +69,7 @@ rect{stroke-width:1.5}
 
 <rect class="be" x="40" y="528" width="320" height="64" rx="4"/>
 <text class="ti te" x="200" y="550" text-anchor="middle" dominant-baseline="central">Phase 4 — execute each ticket</text>
-<text class="sb se" x="200" y="572" text-anchor="middle" dominant-baseline="central">delegates 4a to execute</text>
+<text class="sb se" x="200" y="572" text-anchor="middle" dominant-baseline="central">4a to execute, then recommend /create-pr</text>
 <line class="ln" x1="360" y1="560" x2="384" y2="560" marker-end="url(#ae)"/>
 <rect class="bn" x="384" y="536" width="256" height="48" rx="4"/>
 <text class="sb tn" x="512" y="554" text-anchor="middle" dominant-baseline="central">one task branch, commit per ticket</text>
@@ -91,7 +91,7 @@ rect{stroke-width:1.5}
 
 <rect class="bh" x="50" y="760" width="300" height="66" rx="4"/>
 <text class="ti th" x="200" y="778" text-anchor="middle" dominant-baseline="central">human approves or rejects</text>
-<text class="sb sh" x="200" y="796" text-anchor="middle" dominant-baseline="central">approve → LEARNING.md, then /create-pr</text>
+<text class="sb sh" x="200" y="796" text-anchor="middle" dominant-baseline="central">approve → stamp review.md, LEARNING.md, /create-pr</text>
 <text class="sb sh" x="200" y="814" text-anchor="middle" dominant-baseline="central">reject → re-run phase 4, then 5</text>
 
 <rect class="bo" x="40" y="856" width="12" height="12" rx="2"/>
