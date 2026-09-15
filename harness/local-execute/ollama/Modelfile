@@ -1,26 +1,30 @@
 FROM qwen2.5-coder:32b-instruct-q4_K_M
 
-# ── Sampling – tuned for deterministic, accurate code generation ──────────────
-PARAMETER temperature      0.15     # very low = minimal randomness, precise code
-PARAMETER top_p            0.9
-PARAMETER top_k            40
-PARAMETER repeat_penalty   1.05     # mild — repetition is valid in code patterns
-PARAMETER repeat_last_n    128
+# Sampling – tuned for deterministic, accurate code generation
+# Low temperature = minimal randomness, precise code output
+PARAMETER temperature 0.15
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+# Mild repeat penalty — repetition is valid in code patterns
+PARAMETER repeat_penalty 1.05
+PARAMETER repeat_last_n 128
 
-# ── Context & generation ──────────────────────────────────────────────────────
-PARAMETER num_ctx          32768    # 32K — ticket + spec + multi-file context
-PARAMETER num_batch        512
-PARAMETER num_predict      4096     # max tokens per response
+# Context & generation
+# 32K — enough for ticket + spec + multi-file context
+PARAMETER num_ctx 32768
+PARAMETER num_batch 512
+# Max tokens per response
+PARAMETER num_predict 4096
 
-# ── GPU offload ───────────────────────────────────────────────────────────────
-PARAMETER num_gpu          99       # all layers to A10G
-PARAMETER main_gpu         0
+# GPU offload — all layers to A10G
+PARAMETER num_gpu 99
+PARAMETER main_gpu 0
 
-# ── Memory ────────────────────────────────────────────────────────────────────
-PARAMETER use_mlock        true
-PARAMETER use_mmap         true
+# Memory
+PARAMETER use_mlock true
+PARAMETER use_mmap true
 
-# ── System prompt – harness Phase 4a implementation agent ────────────────────
+# System prompt – harness Phase 4a implementation agent
 SYSTEM """
 You are a software implementation agent. You operate inside a tool-use loop.
 Your only job: implement exactly one development ticket using the tools available.
