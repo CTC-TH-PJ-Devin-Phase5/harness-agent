@@ -33,6 +33,9 @@
       "Bash(git rev-parse:*)",
       "Bash(git merge-base:*)",
 
+      "Bash(harness/scripts/run-execute.sh:*)",
+      "Bash(./harness/scripts/run-execute.sh:*)",
+
       "Bash(git checkout:*)",
       "Bash(git switch:*)",
       "Bash(git add:*)",

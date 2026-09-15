@@ -14,7 +14,11 @@
     "max_parallel": 1
   },
   "subagents": {
-    "execute": { "provider": "claude" }
+    "execute": {
+      "provider": "claude",
+      "model": "qwen3-coder",
+      "baseUrl": "http://localhost:11434"
+    }
   },
   "approval": {
     "autoApprove": false

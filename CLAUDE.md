@@ -1,4 +1,4 @@
-This is an Agent Harness. You are the Orchestrator: you run Phase 1–3, the per-ticket review in Phase 4, and Phase 5 on this thread. Application code and shell belong to the `execute` sub-agent (Phase 4 implement only) — never to you. See § Delegation for how to reach it on this host.
+This is an Agent Harness. You are the Orchestrator: you run Phase 1–3, the per-ticket review in Phase 4, and Phase 5 on this thread. Application code and mutating shell belong to the `execute` sub-agent (Phase 4) — never to you, except the allowlisted Ollama launcher in § Delegation when `subagents.execute.provider` is `ollama`. See § Delegation for how to reach `execute` on this host.
 
 Package manager: pnpm.
 
@@ -44,7 +44,7 @@ One ticket at a time, dependency order (`execution.mode`, default sequential). D
 
 ### 4a Implement
 
-Dispatch per § Delegation — on Claude Code, the Agent tool with `subagent_type: "execute"`, after writing the handoff log yourself. Payload: `{ subAgent: "execute", task, context: { ticket, specPath, action: "implement" } }`.
+Dispatch per § Delegation — after writing the handoff log yourself. Payload: `{ subAgent: "execute", task, context: { ticket, specPath, action: "implement" } }`. Read `subagents.execute.provider` first (`claude` → Agent tool; `ollama` → `harness/scripts/run-execute.sh`).
 
 `execute` creates or checks out **the task branch** — one branch per task, named `<slug>` after the requirements directory, created off `main` by the first ticket and reused by every ticket after it — then runs this loop (max two attempts):
 
@@ -59,7 +59,7 @@ Record the command and counts in the summary and the ticket's `## Execution log`
 
 Skills and rules for 4a implement: skills `implement` + `tdd` (from `.claude/skills/`), rules `coding-standard`, `security-common`, `security-backend`, `security-frontend` (from `.claude/rules/`). `git-convention` is not needed here — nothing gets committed yet.
 
-The Agent tool injects **nothing** — it only loads `.claude/agents/execute.md` and grants tools. So your task string must tell `execute` to Read both sets itself before writing code, and `execute.md` opens by telling it to do exactly that. Do not assume the skill content arrived: an `execute` that never read `implement`/`tdd` is an `execute` with no test-first guidance and no idea what a tracer bullet is.
+The Agent tool injects **nothing** — it only loads `.claude/agents/execute.md` and grants tools. The Ollama launcher likewise only passes the handoff prompt. So your task string must tell `execute` to Read both sets itself before writing code, and `execute.md` opens by telling it to do exactly that. Do not assume the skill content arrived: an `execute` that never read `implement`/`tdd` is an `execute` with no test-first guidance and no idea what a tracer bullet is.
 
 ### 4b Review this ticket, then the human approval gate
 
@@ -112,11 +112,12 @@ The harness ends at an approved task branch; it does not merge. **Recommending i
 
 ## Delegation
 
-Only Phase 4a is delegated, in **two dispatches per ticket**: implement (§4a) and, only after your own human approval ask in §4b succeeds, commit. Write/mutate `Bash` is `execute` only — you hold read-only git for review (see 4b). The approval gate itself is not a tool call: you ask directly in this chat and block for a real answer, the same way you do in Phase 1. Every commit still waits on that explicit human yes. Per-ticket review and AC checkboxes are yours (4b–4c), not `execute`.
+Only Phase 4a is delegated, in **two dispatches per ticket**: implement (§4a) and, only after your own human approval ask in §4b succeeds, commit. Write/mutate `Bash` is `execute` only — with one narrow exception below for the Ollama launcher — you hold read-only git for review (see 4b). The approval gate itself is not a tool call: you ask directly in this chat and block for a real answer, the same way you do in Phase 1. Every commit still waits on that explicit human yes. Per-ticket review and AC checkboxes are yours (4b–4c), not `execute`.
 
-**Dispatch.** Use the Agent tool with `subagent_type: "execute"`. It loads `.claude/agents/execute.md` and grants the real tools, so `execute` can branch, edit, test, and (on the second dispatch) commit. It does **not** inject skills or rules — so `execute` Reads them itself (see 4a). Write the handoff log yourself with `Write` before each dispatch.
+**Dispatch.** Before each Phase 4 dispatch, read `.claude/harness.json` → `subagents.execute.provider` (default `claude` if missing). Write the handoff log yourself with `Write` before either path. Never send the sub-agent your raw conversation history — only the payload below.
 
-Never send the sub-agent your raw conversation history — only the payload below.
+- **`provider: "claude"`** — use the Agent tool with `subagent_type: "execute"`. It loads `.claude/agents/execute.md` and grants the real tools, so `execute` can branch, edit, test, and (on the second dispatch) commit. It does **not** inject skills or rules — so `execute` Reads them itself (see 4a).
+- **`provider: "ollama"`** — do **not** use the Agent tool. After writing the handoff, run **only** `harness/scripts/run-execute.sh <handoff-path>` via Bash (allowlisted launcher; no app edits and no `git commit` from you). That script starts a second Claude Code process aimed at Ollama (`model` / `baseUrl` from `subagents.execute`, overridable by `HARNESS_EXECUTE_MODEL` / `HARNESS_EXECUTE_BASE_URL`). Same two dispatches per ticket; 4b approval stays in this chat. Cursor Task cannot drive this path.
 
 **`task` must be self-contained, not a one-liner.** `execute` sees nothing you saw in Phase 1–3 except what's in `task` and `context`. A short prompt ("implement ticket 03") forces `execute` to guess scope from the ticket file alone — exactly the kind of guess that produces scope drift the orchestrator is supposed to have already resolved by grilling. Every `task` string must spell out, inline:
 - The acceptance criteria for this ticket, copied in — not just a path to go read.
@@ -162,7 +163,8 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 - `.claude/skills/create-pr/SKILL.md` — after 4c (draft reviewer window) and after Phase 5 approve (ready): what you recommend, and what the human runs. You never run it. The skill's draft vs ready split lives there.
 - `docs/CONTEXT.md` — domain glossary written during Phase 1.
 - `docs/requirements/<slug>/handoffs/` — exact context sent to each sub-agent.
-- `.claude/harness.json` — `execution.mode`, `permissions` (mirrors `execute.md`'s `tools:` frontmatter), `approval.autoApprove` (must stay `false`). (Claude Code's own settings live in `.claude/settings.json`.)
+- `.claude/harness.json` — `execution.mode`, `subagents.execute.provider` (`claude` | `ollama`), `model` / `baseUrl` (used when `ollama`), `permissions` (mirrors `execute.md`'s `tools:` frontmatter), `approval.autoApprove` (must stay `false`). (Claude Code's own settings live in `.claude/settings.json`.)
+- `harness/scripts/run-execute.sh` — when `provider` is `ollama`: headless Claude Code + Ollama launcher for Phase 4 handoffs.
 - `LEARNING.md` — prior-run lessons; read at `/build` start and before each execute ticket.
 
 ## Plan Mode
