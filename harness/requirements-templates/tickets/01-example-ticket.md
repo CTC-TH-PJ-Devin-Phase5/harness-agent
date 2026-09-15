@@ -12,8 +12,14 @@
 
 ## Execution log
 
-<!-- Appended by the execute sub-agent (Phase 4) after every attempt, one row per attempt. -->
+<!-- Appended by execute after every implement attempt (one row per attempt).
+     Orchestrator also appends one row per Orchestrator CI run (Agent =
+     orchestrator, Skill(s) = orchestrator-ci) after Phase 4b CI. -->
 
 | Attempt | Agent | Skill(s) | Source files read | Rule/step followed | What was done | Outcome |
 |---|---|---|---|---|---|---|
+
+<!-- Example Orchestrator CI row (do not leave this placeholder in real tickets):
+| 1/2 | orchestrator | orchestrator-ci | .claude/skills/orchestrator-ci/SKILL.md | suite steps 1–4 | ran unit+lint+typecheck+build; Overall PASS | success — CI PASS |
+-->
 
