@@ -180,7 +180,10 @@ your findings to `docs/requirements/<slug>/review.md`.
 Confirm every ticket's own `## Execution log` table shows a passing
 final `pnpm test:unit` attempt, and cite that log in `review.md`. Call
 out any ticket whose log doesn't show unit passing, or is missing
-entirely (that one's tests were never recorded — unverified).
+entirely (that one's tests were never recorded — unverified). Also
+confirm the latest Orchestrator CI row for each ticket shows Overall
+PASS; if missing or FAIL, flag it in `review.md` as unverified (do not
+re-run CI in Phase 5).
 
 Present a summary to the human and ask for approve/reject. **Never
 auto-approve.**

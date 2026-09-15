@@ -47,8 +47,11 @@
       "Bash(npm run db:migrate:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm run test:*)",
+      "Bash(pnpm run lint)",
       "Bash(pnpm run lint:*)",
+      "Bash(pnpm run typecheck)",
       "Bash(pnpm run typecheck:*)",
+      "Bash(pnpm run build)",
       "Bash(pnpm run build:*)",
 
       "Bash(npx vitest:*)",
