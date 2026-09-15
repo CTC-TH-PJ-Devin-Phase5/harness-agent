@@ -131,4 +131,7 @@ services:
 
 volumes:
   ollama-models:
-    driver: local
+    # Reuse existing volume that already has the model downloaded.
+    # Change `name` if you want to use a fresh volume instead.
+    external: true
+    name: aider-local-llm_ollama_models
