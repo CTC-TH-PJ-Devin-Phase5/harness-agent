@@ -26,6 +26,23 @@ You cannot pause mid-task to wait on a human, so the orchestrator calls you
   re-implement, do not re-run tests, do not touch anything beyond staging
   and committing. Return the commit hash to the orchestrator.
 
+### CI-fix implement dispatches
+
+The orchestrator may call you again with `action: "implement"` after
+Orchestrator CI failed in Phase 4b. Treat this like any other implement
+dispatch, with these extras:
+
+- The `task` will label itself a **CI-fix** and include which CI steps
+  failed plus error excerpts. Fix those failures; do not expand scope into
+  unrelated AC.
+- Still run your own `pnpm test:unit` loop (max attempts remaining on the
+  ticket). Still leave changes uncommitted. Still do not check AC or mark
+  Status done. Still do not run lint/typecheck/build as a substitute for
+  the orchestrator's CI — that suite is the orchestrator's job after you
+  return.
+- Bump Attempts / append your Execution log row as usual. The orchestrator
+  appends its own CI row separately after it re-runs CI.
+
 ## Load your skills and rules first — before writing anything
 
 **This section is for an `action: "implement"` dispatch only.** On an
