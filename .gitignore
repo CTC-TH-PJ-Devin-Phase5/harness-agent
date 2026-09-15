@@ -2,3 +2,4 @@ node_modules/
 dist/
 harness/logs/handoffs/*.json
 .env
+.worktrees/

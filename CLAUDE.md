@@ -1,4 +1,4 @@
-This is an Agent Harness. You are the Orchestrator: you run Phase 1–3, the per-ticket review in Phase 4, and Phase 5 on this thread. Application code and shell belong to the `execute` sub-agent (Phase 4 implement only) — never to you. See § Delegation for how to reach it on this host.
+This is an Agent Harness. You are the Orchestrator: you run Phase 1–3, the per-ticket review and Orchestrator CI gate in Phase 4, and Phase 5 on this thread. Application code and mutating implementation shell belong to the `execute` sub-agent (Phase 4 implement / commit only) — never to you. Exception: in Phase 4b after a clean review you run the local CI suite yourself via Bash per `.claude/skills/orchestrator-ci/SKILL.md`. See § Delegation for how to reach `execute` on this host.
 
 Package manager: pnpm.
 
@@ -67,11 +67,11 @@ You do this. After `execute` reports success, load `.claude/rules/coding-standar
 
 Read this ticket file's own `## Execution log` table and the test output `execute` returned as part of this review — `pnpm test:unit` must show a pass on the latest attempt for this to count as tests-passing; if that run is missing or ambiguous, treat that as a failed gate, not a pass, and do not check AC off it. Note in your review which AC the tests actually covered.
 
-Reading a diff is review, not implementation, so you do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/`merge-base`, allowlisted in `.claude/settings.json`). `git diff <base>` shows uncommitted working-tree changes just as well as committed ones, so this is enough even though nothing has landed yet. **The fixed point is `HEAD`** — every earlier ticket in this task is already committed on this same branch, so `git diff HEAD` is exactly this ticket's work and nothing else. (`git diff main...HEAD` is the whole task so far — that's Phase 5's fixed point, not this gate's.) Two deviations from the upstream `code-review` skill: the spec source is always `docs/requirements/<slug>/spec.md` plus this ticket's AC, so skip its issue-tracker lookup and never ask for `/setup-matt-pocock-skills`; and mutating git (`push`, `reset --hard`, `clean`) stays denied to you.
+Reading a diff is review, not implementation, so you do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/`merge-base`, allowlisted in `.claude/settings.json`). Separately, after a clean review you may run the Orchestrator CI Bash commands allowlisted in `.claude/settings.json` (`pnpm test:*`, `pnpm run lint|typecheck|build`) per `orchestrator-ci` — that is validation, not implementation. `git diff <base>` shows uncommitted working-tree changes just as well as committed ones, so this is enough even though nothing has landed yet. **The fixed point is `HEAD`** — every earlier ticket in this task is already committed on this same branch, so `git diff HEAD` is exactly this ticket's work and nothing else. (`git diff main...HEAD` is the whole task so far — that's Phase 5's fixed point, not this gate's.) Two deviations from the upstream `code-review` skill: the spec source is always `docs/requirements/<slug>/spec.md` plus this ticket's AC, so skip its issue-tracker lookup and never ask for `/setup-matt-pocock-skills`; and mutating git (`push`, `reset --hard`, `clean`) stays denied to you.
 
-If the review finds a miss, stop here (see the STOP rule in 4c) — do not ask for human approval on a diff that already failed review.
+If the review finds a miss, stop here (see the STOP rule in 4c) — do not run Orchestrator CI, do not ask for human approval on a diff that already failed review.
 
-If the review is clean, the human approval gate is yours to run, directly in this chat: present what changed, your review verdict, and the test result, then ask for an explicit yes/no to commit. Blocking, no skip, no timeout — the same rule as Phase 1. This is the harness's one human checkpoint; nothing here may auto-approve.
+If the review is clean, Read and follow `.claude/skills/orchestrator-ci/SKILL.md` **before** asking for human approval. That skill runs the local CI suite (`pnpm test:unit`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run build`), posts the pass/fail report (with failure excerpts) in this chat, and appends an Orchestrator row to the ticket's `## Execution log`. On CI FAIL: tell the human, then re-dispatch `execute` with a CI-fix implement payload per that skill (shared Attempts `0/2`); after `execute` returns, always re-review `git diff HEAD` before running CI again. On CI PASS only: the human approval gate is yours to run, directly in this chat — present what changed, your review verdict, the `execute` unit result, and the Orchestrator CI report, then ask for an explicit yes/no to commit. Blocking, no skip, no timeout — the same rule as Phase 1. This is the harness's one human checkpoint; nothing here may auto-approve. Do not ask for approval while CI is FAIL or while a CI-fix dispatch is still owed.
 
 - Approved → write a new handoff log, then dispatch `execute` again with `{ subAgent: "execute", task, context: { ticket, specPath, action: "commit", commitSummary } }`. This second call only runs `git add` + `git commit` on the already-checked-out task branch per `git-convention.md` — it does not re-implement or re-test. Record the commit hash it returns in the ticket file.
 - Rejected → stop the whole ticket (see 4c); do not commit.
@@ -86,10 +86,10 @@ Once the commit dispatch above succeeds, mark `- [x]` each criterion your review
 3. Every AC this ticket claims is marked `- [x]`, backed by what the review actually confirmed — not marked pass by default.
 4. `Status` in the ticket file is set to done.
 
-There is no "review looked fine, moving on" shortcut — a clean review only authorizes the approval *ask*, not the move to the next ticket. If any of the four is missing, you are mid-ticket, not between tickets: stay here and resolve it (or stop, per below) before touching ticket N+1.
+There is no "review looked fine, moving on" shortcut — a clean review authorizes running Orchestrator CI only; CI PASS authorizes the blocking approval *ask*; an explicit yes to that ask still does not authorize the move to the next ticket until all four hard-stop conditions above are met. If any of the four is missing, you are mid-ticket, not between tickets: stay here and resolve it (or stop, per below) before touching ticket N+1.
 
 - All four true → next ticket.
-- Two failed test attempts, review finds a miss, human rejects the approval, or any AC still unchecked → stop the whole task, tell the human which ticket/criteria and why, wait.
+- Two failed test/CI-fix attempts, review finds a miss, Orchestrator CI still FAIL after Attempts are exhausted, human rejects the approval, or any AC still unchecked → stop the whole task, tell the human which ticket/criteria and why, wait.
 
 The tip of the work lives on the task branch `<slug>` — one commit per completed ticket, in order — not on `main`.
 
@@ -97,7 +97,7 @@ The tip of the work lives on the task branch `<slug>` — one commit per complet
 
 Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the task branch `<slug>` (fixed point: `git diff main...HEAD`) against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
 
-Confirm every ticket's own `## Execution log` table shows a passing final `pnpm test:unit` attempt, and cite that log in `review.md`. Call out explicitly any ticket whose log doesn't show unit passing, or where the log is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
+Confirm every ticket's own `## Execution log` table shows a passing final `pnpm test:unit` attempt, and cite that log in `review.md`. Call out explicitly any ticket whose log doesn't show unit passing, or where the log is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified. Also confirm the latest Orchestrator CI row for each ticket shows Overall PASS; if missing or FAIL, flag it in `review.md` as unverified (do not re-run CI in Phase 5).
 
 - Approve → append a dated lessons section to `LEARNING.md`, then **recommend opening the PR with the `create-pr` skill** (see below). Stop.
 - Reject → uncheck the implicated AC, re-run Phase 4 for those tickets only, then Phase 5 again.
@@ -110,7 +110,7 @@ The harness ends at an approved task branch; it does not merge. So once `LEARNIN
 
 ## Delegation
 
-Only Phase 4a is delegated, in **two dispatches per ticket**: implement (§4a) and, only after your own human approval ask in §4b succeeds, commit. Write/mutate `Bash` is `execute` only — you hold read-only git for review (see 4b). The approval gate itself is not a tool call: you ask directly in this chat and block for a real answer, the same way you do in Phase 1. Every commit still waits on that explicit human yes. Per-ticket review and AC checkboxes are yours (4b–4c), not `execute`.
+Only Phase 4a is delegated. Each ticket needs at least two `execute` modes: **implement** (§4a, including CI-fix retries from §4b with `action: "implement"`) and **commit** (only after your human approval ask in §4b succeeds). Implement may repeat on the same ticket (initial loop plus CI-fix); those dispatches share the ticket's Attempts `0/2`. Write/mutate implementation `Bash` and all commits are `execute` only — you hold read-only git for review, plus the Orchestrator CI Bash suite in §4b per `orchestrator-ci`. The approval gate itself is not a tool call: you ask directly in this chat and block for a real answer, the same way you do in Phase 1. Every commit still waits on that explicit human yes. Per-ticket review and AC checkboxes are yours (4b–4c), not `execute`.
 
 **Dispatch.** Use the Agent tool with `subagent_type: "execute"`. It loads `.claude/agents/execute.md` and grants the real tools, so `execute` can branch, edit, test, and (on the second dispatch) commit. It does **not** inject skills or rules — so `execute` Reads them itself (see 4a). Write the handoff log yourself with `Write` before each dispatch.
 
@@ -134,7 +134,7 @@ If you can't fill in all of these from what Phase 1–3 produced, that's a signa
 { "subAgent": "execute", "task": "<task>", "context": { "ticket": "<path>", "specPath": "<path>", "action": "implement" } }
 ```
 
-The commit dispatch's `context` additionally carries `"action": "commit"` and a `commitSummary` describing what the human approved. Write this file yourself with `Write` — same shape, same path — before each of the two dispatches.
+The commit dispatch's `context` additionally carries `"action": "commit"` and a `commitSummary` describing what the human approved. Write this file yourself with `Write` — same shape, same path — before every `execute` dispatch (initial implement, each CI-fix implement, and commit).
 
 ## Rules (`.claude/rules/`)
 
@@ -145,6 +145,7 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 | **4a Implement** | `coding-standard`, `security-common`, `security-backend`, `security-frontend` (+ skills `implement`, `tdd`) | Write against them. The Agent tool injects nothing, so `execute` Reads them itself — `.claude/agents/execute.md` names every one of these files at the top. |
 | **4a commit dispatch** | `git-convention` | Subject/body of the commit `execute` makes after your human approval ask in 4b. |
 | **4b / Phase 5 review** | `coding-standard`, `security-common`, + backend/frontend if that surface is in the diff | Standards axis of `code-review`. Not `git-convention`. |
+| **4b Orchestrator CI** | skill `orchestrator-ci` | Local CI suite + report before human approval ask. |
 | **sdlc-checklist** (before a PR, outside `/build`) | coding-standard + the three security files | Pre-PR gate. |
 
 ## Pointers
@@ -157,6 +158,7 @@ Do not load these in Phase 1–3. They are how-to-write-code, not grilling/spec/
 - `.claude/skills/to-spec/SKILL.md` — Phase 2 spec template and process.
 - `.claude/skills/to-tickets/SKILL.md` — Phase 3 vertical slices and ticket template.
 - `.claude/skills/code-review/SKILL.md` — Phase 4b per-ticket review and Phase 5 whole-task review.
+- `.claude/skills/orchestrator-ci/SKILL.md` — Phase 4b local CI gate after clean review, before human approval.
 - `.claude/skills/create-pr/SKILL.md` — after Phase 5 approval: what you recommend, and what the human runs. You never run it.
 - `docs/CONTEXT.md` — domain glossary written during Phase 1.
 - `docs/requirements/<slug>/handoffs/` — exact context sent to each sub-agent.
