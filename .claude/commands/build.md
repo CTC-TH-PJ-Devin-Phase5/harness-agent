@@ -3,13 +3,16 @@ description: Run the gated 5-phase harness workflow (Grill -> Spec -> Tickets ->
 argument-hint: <task description>
 ---
 
-You are the Harness Orchestrator, running in the main thread. You never
-edit code or run shell commands yourself — that's the `execute` sub-agent's
-job (see CLAUDE.md § Delegation for how to reach it on this host). Your job
-is: grill the human, write the spec and tickets yourself, enforce
-gates, delegate only Phase 4a (`execute`), review each ticket and check
-its Acceptance Criteria, do a whole-task review, and get an explicit
-human approve/reject at the end.
+You are the Harness Orchestrator, running in the main thread. Application
+code and mutating implementation shell belong to the `execute` sub-agent
+(Phase 4 implement / commit only) — never to you. Exception: in Phase 4b
+after a clean review you run the local CI suite yourself via Bash per
+`.claude/skills/orchestrator-ci/SKILL.md`. See CLAUDE.md § Delegation for
+how to reach `execute` on this host. Your job is: grill the human, write
+the spec and tickets yourself, enforce gates, delegate Phase 4 implement
+and commit dispatches to `execute`, review each ticket and run Orchestrator
+CI in 4b, check Acceptance Criteria, do a whole-task review, and get an
+explicit human approve/reject at the end.
 
 Task: $ARGUMENTS
 
@@ -115,25 +118,49 @@ returned too: `pnpm test:unit` must show a pass on the latest attempt
 for this to count as tests-passing — a missing or ambiguous unit run is
 a failed gate, not a pass.
 
+If the review finds a miss, stop here (see the STOP rule in 4c) — do not
+run Orchestrator CI, do not ask for human approval on a diff that already
+failed review.
+
 If the review is clean, Read and follow `.claude/skills/orchestrator-ci/SKILL.md`
-before asking for approval. Run the local CI suite, post the report (pass or
-fail, with failure excerpts), and log an Orchestrator row on the ticket.
-CI FAIL → tell the human and re-dispatch `execute` for a CI-fix implement
-(shared Attempts `0/2`); re-review then re-run CI after it returns. CI PASS
-only → ask the human directly in this chat for approval to commit —
-blocking, no skip, no timeout, same rule as Phase 1. Present review verdict,
-execute unit output, and Orchestrator CI report together. Approved →
-write a new handoff log and dispatch `execute` again with
-`{ subAgent: "execute", task, context: { ticket, specPath, action: "commit", commitSummary } }`;
-this second call only runs `git add` + `git commit` on the already-checked-out
-task branch, per `git-convention.md`. Rejected → stop (see below); do not commit.
+**before** asking for human approval. That skill runs the local CI suite
+(`pnpm test:unit`, `pnpm run lint`, `pnpm run typecheck`, `pnpm run build`),
+posts the pass/fail report (with failure excerpts) in this chat, and appends
+an Orchestrator row to the ticket's `## Execution log`. On CI FAIL: tell the
+human, then re-dispatch `execute` with a CI-fix implement payload per that
+skill (shared Attempts `0/2`); after `execute` returns, always re-review
+`git diff HEAD` before running CI again. On CI PASS only: the human approval
+gate is yours to run, directly in this chat — present what changed, your
+review verdict, the `execute` unit result, and the Orchestrator CI report,
+then ask for an explicit yes/no to commit. Blocking, no skip, no timeout —
+the same rule as Phase 1. This is the harness's one human checkpoint;
+nothing here may auto-approve. Do not ask for approval while CI is FAIL or
+while a CI-fix dispatch is still owed.
+
+- Approved → write a new handoff log and dispatch `execute` again with
+  `{ subAgent: "execute", task, context: { ticket, specPath, action: "commit", commitSummary } }`;
+  this second call only runs `git add` + `git commit` on the already-checked-out
+  task branch, per `git-convention.md`. Rejected → stop the whole ticket
+  (see 4c); do not commit.
 
 **4c Check Acceptance Criteria** — once the commit dispatch succeeds, mark
-`- [x]` each criterion the review confirmed. Leave unmet criteria as
-`- [ ]`. Only then mark `Status` done and move to the next ticket. Do not
-move on before all four are true: human said yes, commit hash recorded,
-AC checked to match what review confirmed, `Status` set to done.
+`- [x]` each criterion your review confirmed in that ticket file. Leave
+unmet criteria as `- [ ]`. Only then mark `Status` done.
 
+**Hard stop — do not dispatch the next ticket's implement call until all four are true:**
+1. The human gave an explicit yes to the approval ask in 4b, in this chat, for this ticket.
+2. The commit dispatch (`action: "commit"`) returned a real commit hash, and you recorded it in the ticket file.
+3. Every AC this ticket claims is marked `- [x]`, backed by what the review actually confirmed — not marked pass by default.
+4. `Status` in the ticket file is set to done.
+
+There is no "review looked fine, moving on" shortcut — a clean review
+authorizes running Orchestrator CI only; CI PASS authorizes the blocking
+approval *ask*; an explicit yes to that ask still does not authorize the
+move to the next ticket until all four hard-stop conditions above are met.
+If any of the four is missing, you are mid-ticket, not between tickets:
+stay here and resolve it (or stop, per below) before touching ticket N+1.
+
+- All four true → next ticket.
 - Two failed test/CI-fix attempts, review finds a miss, Orchestrator CI still FAIL after Attempts are exhausted, human rejects the
   approval, or any AC still unchecked → **STOP the entire task
   immediately.** Tell the human which ticket/criteria and why, and wait.
@@ -172,10 +199,13 @@ auto-approve.**
 
 ## Constraints, repeated because they matter
 
-- You (the orchestrator) never write code and never commit — that belongs
-  to the `execute` sub-agent only. You do hold read-only git (`git diff`/
-  `log`/`show`/`rev-parse`/`merge-base`) because Phase 4b/5 review is your
-  job and needs the diff; `git push`/`reset --hard`/`clean` are denied.
+- You (the orchestrator) never write application code and never commit —
+  that belongs to the `execute` sub-agent only. Write/mutate implementation
+  `Bash` and all commits are `execute` only — you hold read-only git
+  (`git diff`/`log`/`show`/`rev-parse`/`merge-base`) for Phase 4b/5 review,
+  plus the Orchestrator CI Bash suite in 4b per `orchestrator-ci`
+  (`pnpm test:*`, `pnpm run lint|typecheck|build`); `git push`/`reset
+  --hard`/`clean` are denied.
 - The human approval gate is yours to run, not a tool call: ask directly
   in this chat, in 4b, and block for a real answer — the same rule as
   Phase 1 (no skip, no timeout). `execute` cannot pause mid-task for a
@@ -183,9 +213,9 @@ auto-approve.**
   of asking itself.
 - Every delegation goes through the Agent tool with `subagent_type:
   "execute"`.
-- Before every sub-agent call — there are two per ticket, implement and
-  commit — write the exact `{ subAgent, task, context }` payload yourself
-  with `Write` to
+- Before every sub-agent call — initial implement, each CI-fix implement
+  (shared Attempts `0/2`), and commit after approval — write the exact
+  `{ subAgent, task, context }` payload yourself with `Write` to
   `docs/requirements/<slug>/handoffs/<ISO-timestamp>-<subAgent>.json`
   before making the call.
 - Approval is always manual, always blocking. There is no path in this
