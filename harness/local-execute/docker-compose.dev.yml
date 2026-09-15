@@ -31,10 +31,7 @@ services:
 
     # ── Volumes ───────────────────────────────────────────────────────────────
     volumes:
-      # NVMe instance store (600 GB) — mount before starting:
-      #   sudo mkfs -t xfs /dev/nvme1n1 && sudo mkdir -p /data/ollama
-      #   sudo mount /dev/nvme1n1 /data/ollama && sudo chown -R ubuntu:ubuntu /data/ollama
-      - /data/ollama:/root/.ollama
+      - ollama-models:/root/.ollama
       - ./ollama/config:/etc/ollama     # config.json (gpu_layers, mlock, mmap)
 
     # ── Environment ───────────────────────────────────────────────────────────
@@ -132,4 +129,6 @@ services:
         echo ">>> Done. Available models:"
         ollama list
 
-# No named volumes — model data lives on /data/ollama (NVMe SSD bind mount)
+volumes:
+  ollama-models:
+    driver: local
