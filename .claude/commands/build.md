@@ -115,8 +115,14 @@ returned too: `pnpm test:unit` must show a pass on the latest attempt
 for this to count as tests-passing — a missing or ambiguous unit run is
 a failed gate, not a pass.
 
-If the review is clean, ask the human directly in this chat for approval
-to commit — blocking, no skip, no timeout, same rule as Phase 1. Approved →
+If the review is clean, Read and follow `.claude/skills/orchestrator-ci/SKILL.md`
+before asking for approval. Run the local CI suite, post the report (pass or
+fail, with failure excerpts), and log an Orchestrator row on the ticket.
+CI FAIL → tell the human and re-dispatch `execute` for a CI-fix implement
+(shared Attempts `0/2`); re-review then re-run CI after it returns. CI PASS
+only → ask the human directly in this chat for approval to commit —
+blocking, no skip, no timeout, same rule as Phase 1. Present review verdict,
+execute unit output, and Orchestrator CI report together. Approved →
 write a new handoff log and dispatch `execute` again with
 `{ subAgent: "execute", task, context: { ticket, specPath, action: "commit", commitSummary } }`;
 this second call only runs `git add` + `git commit` on the already-checked-out
@@ -128,7 +134,7 @@ task branch, per `git-convention.md`. Rejected → stop (see below); do not comm
 move on before all four are true: human said yes, commit hash recorded,
 AC checked to match what review confirmed, `Status` set to done.
 
-- Two failed test attempts, review finds a miss, human rejects the
+- Two failed test/CI-fix attempts, review finds a miss, Orchestrator CI still FAIL after Attempts are exhausted, human rejects the
   approval, or any AC still unchecked → **STOP the entire task
   immediately.** Tell the human which ticket/criteria and why, and wait.
 
