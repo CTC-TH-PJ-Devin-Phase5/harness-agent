@@ -1,0 +1,52 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: harness-ollama
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:11434:11434"
+
+    # ── CPU Performance ───────────────────────────────────────────────────────
+    # i5-1345U: 10 cores (2P + 8E), 12 threads, 16 GB RAM
+    cpus: "10"                  # ใช้ทุก core
+    mem_limit: 10g              # 10 GB: model ~2.3 GB + inference overhead + buffer
+    mem_reservation: 4g         # ขอ 4 GB เป็นอย่างต่ำเพื่อ load model
+
+    environment:
+      # จำนวน thread สำหรับ inference — ใช้ทั้งหมด 12 threads
+      OLLAMA_NUM_THREADS: "12"
+
+      # เก็บ model ไว้ใน memory 30 นาที หลัง request สุดท้าย
+      # สำคัญมาก: tool-use loop มีหลาย round-trip, ถ้า unload ระหว่าง call จะช้ามาก
+      OLLAMA_KEEP_ALIVE: "30m"
+
+      # load model 1 ตัวเท่านั้น (ประหยัด RAM สำหรับ inference)
+      OLLAMA_MAX_LOADED_MODELS: "1"
+
+      # request parallel เดียว (harness รัน sequential อยู่แล้ว)
+      OLLAMA_NUM_PARALLEL: "1"
+
+      # ขนาด context window สูงสุด per request (qwen3.5 รองรับ 128k แต่ RAM จำกัด)
+      # ไว้ที่ 8k เพียงพอสำหรับ ticket + spec + code ใน 1 attempt
+      OLLAMA_CONTEXT_LENGTH: "8192"
+
+      # Flash Attention — ปิดสำหรับ CPU mode (ไม่มีผลบน CPU, เปิดอาจ error)
+      OLLAMA_FLASH_ATTENTION: "0"
+
+      # ปิด GPU offload — ไม่มี NVIDIA, Intel Xe ยังไม่ stable ใน Docker Linux
+      OLLAMA_GPU_OVERHEAD: "0"
+
+    volumes:
+      # เก็บ model ใน volume แยก ไม่ต้อง pull ใหม่ทุกครั้งที่ recreate container
+      - ollama-models:/root/.ollama
+
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  ollama-models:
+    driver: local
