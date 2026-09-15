@@ -31,7 +31,7 @@ services:
 
     # ── Volumes ───────────────────────────────────────────────────────────────
     volumes:
-      - ollama-models:/root/.ollama
+      - /data/ollama:/root/.ollama
       - ./ollama/config:/etc/ollama     # config.json (gpu_layers, mlock, mmap)
 
     # ── Environment ───────────────────────────────────────────────────────────
@@ -129,9 +129,5 @@ services:
         echo ">>> Done. Available models:"
         ollama list
 
-volumes:
-  ollama-models:
-    # Reuse existing volume that already has the model downloaded.
-    # Change `name` if you want to use a fresh volume instead.
-    external: true
-    name: aider-local-llm_ollama_models
+# No named volumes — model data stored on /data/ollama (NVMe SSD)
+# Mount NVMe before starting: see setup-ec2.sh
