@@ -86,7 +86,7 @@ Once the commit dispatch above succeeds, mark `- [x]` each criterion your review
 3. Every AC this ticket claims is marked `- [x]`, backed by what the review actually confirmed — not marked pass by default.
 4. `Status` in the ticket file is set to done.
 
-There is no "review looked fine, moving on" shortcut — a clean review only authorizes the approval *ask*, not the move to the next ticket. If any of the four is missing, you are mid-ticket, not between tickets: stay here and resolve it (or stop, per below) before touching ticket N+1.
+There is no "review looked fine, moving on" shortcut — a clean review authorizes running Orchestrator CI only; CI PASS authorizes the blocking approval *ask*; an explicit yes to that ask still does not authorize the move to the next ticket until all four hard-stop conditions above are met. If any of the four is missing, you are mid-ticket, not between tickets: stay here and resolve it (or stop, per below) before touching ticket N+1.
 
 - All four true → next ticket.
 - Two failed test/CI-fix attempts, review finds a miss, Orchestrator CI still FAIL after Attempts are exhausted, human rejects the approval, or any AC still unchecked → stop the whole task, tell the human which ticket/criteria and why, wait.
@@ -134,7 +134,7 @@ If you can't fill in all of these from what Phase 1–3 produced, that's a signa
 { "subAgent": "execute", "task": "<task>", "context": { "ticket": "<path>", "specPath": "<path>", "action": "implement" } }
 ```
 
-The commit dispatch's `context` additionally carries `"action": "commit"` and a `commitSummary` describing what the human approved. Write this file yourself with `Write` — same shape, same path — before each of the two dispatches.
+The commit dispatch's `context` additionally carries `"action": "commit"` and a `commitSummary` describing what the human approved. Write this file yourself with `Write` — same shape, same path — before every `execute` dispatch (initial implement, each CI-fix implement, and commit).
 
 ## Rules (`.claude/rules/`)
 
