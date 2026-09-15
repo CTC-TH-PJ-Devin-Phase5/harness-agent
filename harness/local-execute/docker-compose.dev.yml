@@ -52,9 +52,9 @@ services:
       OLLAMA_MAX_QUEUE: "4"
 
       # --- Context & batching ---
-      # 32K: enough for ticket + spec + several code files
-      # safe on A10G with KV cache quantised to q8_0
-      OLLAMA_NUM_CTX: "32768"
+      # 16K: safe on A10G 24 GB with 32B model
+      # model=19 GB + KV cache 16K q8_0=~2 GB + CUDA overhead = ~22 GB
+      OLLAMA_NUM_CTX: "16384"
       OLLAMA_NUM_BATCH: "512"
 
       # --- CPU threads (for non-GPU ops: tokenise, sample) ---
