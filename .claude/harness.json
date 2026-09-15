@@ -14,7 +14,12 @@
     "max_parallel": 1
   },
   "subagents": {
-    "execute": { "provider": "claude" }
+    "execute": {
+      "provider": "claude",
+      "localLlm": {
+        "enabled": true
+      }
+    }
   },
   "approval": {
     "autoApprove": false

@@ -1,5 +1,11 @@
 node_modules/
 dist/
+
+# harness local-execute config (user-specific, never commit)
+harness/local-execute/.env
+
+# harness runtime logs (audit trails — keep locally, don't commit)
 harness/logs/handoffs/*.json
 .env
 .worktrees/
+harness/logs/ollama-calls/*.json
