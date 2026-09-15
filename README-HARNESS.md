@@ -1,6 +1,6 @@
 # agent-harness-template
 
-A template for running AI-assisted development as a gated, 5-phase pipeline instead of one long-running single-agent session. The Orchestrator (main thread) grills, writes the spec and tickets, reviews, and checks acceptance criteria. Only implementation is delegated to the `execute` sub-agent.
+A template for running AI-assisted development as a gated, 5-phase pipeline instead of one long-running single-agent session. The Orchestrator (main thread) grills, writes the spec and tickets, reviews (including the Orchestrator CI gate in 4b), and checks acceptance criteria. Only implementation is delegated to the `execute` sub-agent.
 
 ## Why
 
@@ -40,7 +40,10 @@ Phase 4 — per ticket, dependency order:
                  fail attempt 2 → STOP, ask you
            4b  orchestrator loads `.claude/rules/` (coding-standard + security)
                then reviews this ticket (code-review vs spec + this ticket's AC)
-               then asks you, in chat, for approval to commit (blocking, no skip)
+               review miss → STOP
+               review clean → orchestrator-ci (unit+lint+typecheck+build),
+                 show report; FAIL → tell you + execute CI-fix (shared 0/2);
+                 PASS → ask you, in chat, for approval to commit (blocking)
                approved → handoff log → execute, commit dispatch → commit
            4c  orchestrator checks `- [x]` on confirmed AC, then Status: done
            rejected approval / unmet AC → STOP, ask you
@@ -118,24 +121,22 @@ originates from [mattpocock/skills](https://github.com/mattpocock/skills) (MIT
 licensed), vendored into this repo rather than fetched at setup time. To pull
 in updates from upstream, copy the relevant `SKILL.md` file(s) over manually.
 
-### No CI, no build tooling
+### Local Orchestrator CI (no shipped GitHub Actions)
 
-The template deliberately ships with no `package.json`, no lockfile, and no
-CI workflow. An earlier version had a `.github/workflows/ci.yml` plus Node
-scripts that typechecked the harness's own TypeScript and rendered test
-reports; all of it was removed along with the `tools/` and `scripts/`
-directories it existed to serve, because a template shouldn't impose a
-toolchain on the project that clones it. Nothing in Phase 1–5 depends on
-that machinery: `execute` runs `pnpm test:unit` through `Bash` and
-records the command plus pass/fail counts in the summary it returns and
-in the ticket's `## Execution log`.
+The template still ships with no `package.json`, no lockfile, and no
+`.github/workflows` CI — a template should not impose a toolchain on the
+project that clones it. Mechanical enforcement inside `/build` is the
+**Orchestrator CI gate** in Phase 4b (skill `orchestrator-ci`): after a
+clean per-ticket review and before the human approval ask, the Orchestrator
+runs `pnpm test:unit`, `pnpm run lint`, `pnpm run typecheck`, and
+`pnpm run build` on the host, posts a pass/fail report (with failure
+excerpts), and on failure re-dispatches `execute` for a CI-fix (shared
+Attempts `0/2`).
 
-So the gates in this harness are the ones described here — the human
-approval ask in 4b, the AC checks in 4c, and the reviews in 4b/Phase 5 — and
-none of them is enforced by a machine. If you want mechanical enforcement,
-add your own CI and hooks for your stack; treat these rules as the
-shift-left layer, not as a substitute for a pipeline that can actually block
-a merge.
+`execute`'s own implement loop remains `pnpm test:unit` only. Add your own
+GitHub Actions / hooks for merge blocking if you want remote enforcement;
+treat the harness gates as the shift-left layer, not a substitute for a
+pipeline that can block a merge.
 
 ## Test gate
 
@@ -147,6 +148,11 @@ pass/fail counts in the summary it returns to the orchestrator
 reads that table and the returned output during the 4b per-ticket review
 and the Phase 5 whole-task review. A missing or ambiguous unit run is a
 failed gate rather than a pass.
+
+Separately, the Orchestrator records each Orchestrator CI run as its own
+row on that same `## Execution log` table. A missing or failing final
+Orchestrator CI row is a failed 4b gate — do not ask for human approval
+until Overall PASS.
 
 ## Running
 
@@ -192,6 +198,7 @@ commit. See CLAUDE.md § Phase 4b.
 | `harness/diagrams/`         | Workflow diagrams embedded above — hand-written SVG, no build step                                                                  |
 | `CLAUDE.md`                 | Orchestrator runbook (always-loaded)                                                                                                |
 | `.claude/skills/`           | Plain-text skill content the orchestrator and `execute` read directly                                                               |
+| `.claude/skills/orchestrator-ci/SKILL.md` | Phase 4b local CI gate (unit, lint, typecheck, build) after per-ticket review                                      |
 | `.claude/commands/build.md` | Orchestrator prompt (the `/build` slash command)                                                                                    |
 | `.claude/agents/execute.md` | `execute` role prompt + its real tool scope (`tools:` frontmatter)                                                                  |
 | `.claude/harness.json`      | Harness config: `execution.mode`, `permissions` (mirrors `execute.md`'s tool scope), `approval.autoApprove`                         |
