@@ -179,13 +179,16 @@ injects **no skill or rule content** — it loads the role file and grants
 tools, full stop. So `execute` Reads `.claude/skills/{implement,tdd}/SKILL.md`
 and `.claude/rules/*.md` itself, as the top of `.claude/agents/execute.md`
 instructs — a sub-agent that never reads its own rules looks identical to one
-following them, so there is no injection step to fall back on here.[tanaka@acme.co](mailto:tanaka@acme.co)
+following them, so there is no injection step to fall back on here.
 
-`execute` cannot pause mid-task for a human answer, so the orchestrator
-dispatches it **twice per ticket**: once to implement and test (stopping
-with the changes uncommitted), and again — only after the orchestrator has
-reviewed the diff and asked the human for approval directly in chat — to
-commit. See CLAUDE.md § Phase 4b.
+`execute` cannot pause mid-task for a human answer. The orchestrator dispatches
+it **twice per ticket** for the happy path: implement + test (uncommitted), then
+commit after human approval. Between those, in Phase 4b, the orchestrator
+reviews `git diff HEAD`, runs the local CI suite via skill `orchestrator-ci`,
+and only after **Overall PASS** asks the human yes/no to commit; on CI FAIL it
+may send additional **CI-fix** implement dispatches (still
+`action: "implement"`, shared Attempts `0/2`) before approval or commit. See
+CLAUDE.md § Phase 4b.
 
 ## Directory map
 

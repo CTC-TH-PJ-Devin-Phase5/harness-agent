@@ -29,8 +29,9 @@ You cannot pause mid-task to wait on a human, so the orchestrator calls you
 ### CI-fix implement dispatches
 
 The orchestrator may call you again with `action: "implement"` after
-Orchestrator CI failed in Phase 4b. Treat this like any other implement
-dispatch, with these extras:
+Orchestrator CI failed in Phase 4b (skill `orchestrator-ci`, see
+`.claude/skills/orchestrator-ci/SKILL.md`). Treat this like any other
+implement dispatch, with these extras:
 
 - The `task` will label itself a **CI-fix** and include which CI steps
   failed plus error excerpts. Fix those failures; do not expand scope into
