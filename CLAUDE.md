@@ -44,6 +44,33 @@ One ticket at a time, dependency order (`execution.mode`, default sequential). D
 
 ### 4a Implement
 
+**Before dispatching**, read `.claude/harness.json`. Check `subagents.execute.localLlm`:
+
+- **If present**: use the **local-LLM dispatch** below instead of the Agent tool.
+- **If absent** (or `provider: "claude"`): proceed with the Agent tool as documented.
+
+#### Local-LLM dispatch (when `localLlm` is configured)
+
+Write the handoff log (same format, same path), then run:
+
+```
+Bash("node harness/local-execute/index.js <handoff-path>")
+```
+
+After the process exits, read `<handoff-path>.result.json` for the result:
+```json
+{ "success": true, "attempt": 1, "summary": "...", "testOutput": "...", "turns": 12 }
+```
+
+- Exit 0 + `success: true` → treat as `execute` reporting success; proceed to 4b.
+- Exit 1 or `success: false` on attempt 2/2 → stop and report failure (same as the Agent-based retry rule).
+
+Everything else in 4a–4c (handoff log, ticket `## Execution log` row, review, human approval gate, commit dispatch) **stays unchanged** — the commit dispatch still uses `Agent(subagent_type: "execute", action: "commit")`, because `local-execute` handles only `action: "implement"`.
+
+---
+
+#### Agent-tool dispatch (default)
+
 Dispatch per § Delegation — on Claude Code, the Agent tool with `subagent_type: "execute"`, after writing the handoff log yourself. Payload: `{ subAgent: "execute", task, context: { ticket, specPath, action: "implement" } }`.
 
 `execute` creates or checks out **the task branch** — one branch per task, named `<slug>` after the requirements directory, created off `main` by the first ticket and reused by every ticket after it — then runs this loop (max two attempts):

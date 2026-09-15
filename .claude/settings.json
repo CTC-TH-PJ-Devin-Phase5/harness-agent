@@ -66,11 +66,17 @@
       "Bash(docker compose up:*)",
       "Bash(docker compose ps:*)",
       "Bash(docker compose logs:*)",
-      "Bash(docker compose stop:*)"
+      "Bash(docker compose stop:*)",
+
+      "Bash(node harness/local-execute/index.js:*)"
     ],
     "deny": [
       "Read(.env)",
-      "Read(.env.*)",
+      "Read(.env.local)",
+      "Write(.env)",
+      "Write(.env.local)",
+      "Read(harness/local-execute/.env)",
+      "Write(harness/local-execute/.env)",
       "Bash(git reset --hard:*)",
       "Bash(git clean:*)",
       "Bash(git checkout --:*)",
