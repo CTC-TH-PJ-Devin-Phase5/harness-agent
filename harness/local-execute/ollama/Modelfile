@@ -1,10 +1,5 @@
 FROM qwen3:30b
 
-# ── Thinking mode ─────────────────────────────────────────────────────────────
-# Disabled: thinking tokens add context overhead with no benefit in tool-use
-# loops. The model already has enough reasoning capacity for implementation tasks.
-PARAMETER thinking false
-
 # ── Sampling – tuned for deterministic, accurate code generation ──────────────
 # Low temperature = minimal randomness, precise code output
 PARAMETER temperature 0.15

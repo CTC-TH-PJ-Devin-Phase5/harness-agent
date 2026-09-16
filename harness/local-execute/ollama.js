@@ -25,6 +25,8 @@ export async function chat(messages, tools) {
     messages,
     tools,
     stream: false,
+    // Disable Qwen3 thinking mode — thinking tokens waste context in tool-use loops
+    think: false,
   };
 
   const controller = new AbortController();
