@@ -13,8 +13,11 @@
 
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { run } from './loop.js';
 import config from './config.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   const handoffPath = process.argv[2];
