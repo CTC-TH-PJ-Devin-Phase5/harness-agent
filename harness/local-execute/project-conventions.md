@@ -47,6 +47,31 @@ These conventions apply to every ticket. Read them before implementing.
 - No `any` types — use `unknown` and narrow with type guards
 - Keys on lists: use stable derived strings like `` `item-${id}` `` — never bare array index
 
+## Export and import style
+
+This project uses NAMED exports for all components, hooks, and utilities:
+```ts
+export function MyComponent() {}   // ✅ named
+export { useLang, LanguageProvider };  // ✅ named
+export default MyComponent;        // ❌ avoid default exports
+```
+
+Always import with the named form:
+```ts
+import { CaptchaChallenge } from '@/modules/auth/components/CaptchaChallenge'; // ✅
+import CaptchaChallenge from '@/modules/auth/components/CaptchaChallenge';     // ❌
+```
+
+If unsure of an export name — call `read_file` on that module BEFORE writing the import.
+
+## File modification boundary
+
+Only modify files explicitly listed in the task string under "Files to create / modify".
+
+- If a file is not listed → read it only, never rewrite it.
+- If you only need an import from a file → use `read_file` to find the export name, then import. Do NOT rewrite the file to add or rename exports.
+- Rewriting an out-of-scope file to "fix" an import will corrupt other modules that depend on it.
+
 ## Project Stack
 
 - Frontend: React 18 + TypeScript 5 + Vite 5 + Tailwind CSS 3

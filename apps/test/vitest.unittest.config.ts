@@ -10,6 +10,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
-    setupFiles: ['@testing-library/jest-dom'],
+    setupFiles: ['@testing-library/jest-dom', './setup/clearStorage.ts'],
   },
 });

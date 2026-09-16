@@ -1,5 +1,13 @@
-import type { ReactElement } from 'react';
+import React from 'react';
+import { LanguageProvider } from '@/modules/auth/hooks/useLang';
+import { LoginPage } from '@/modules/auth/pages/LoginPage';
 
-export function App(): ReactElement {
-  return <div>Login placeholder</div>;
+function App() {
+  return (
+    <LanguageProvider>
+      <LoginPage onAuthSuccess={console.log} />
+    </LanguageProvider>
+  );
 }
+
+export default App;

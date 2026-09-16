@@ -28,10 +28,22 @@ Modify:
 <include the Props interface definition>
 <include any non-obvious implementation details>
 
+## Exact imports (copy these — do NOT guess export names)
+```ts
+// List every import statement the LLM will need, with exact names:
+import { authTranslations } from '@/modules/auth/i18n/auth.i18n';
+import { CaptchaChallenge } from '@/modules/auth/components/CaptchaChallenge';
+import { LanguageToggle } from '@/modules/auth/components/LanguageToggle';
+import { useLang, LanguageProvider } from '@/modules/auth/hooks/useLang';
+```
+(Update this list for each ticket's actual imports. Guessing export names leads
+to undefined imports that crash at render time.)
+
 ## Known patterns to follow
 <any specific patterns the LLM must use — e.g.:>
 - Backspace in inputs → use onKeyDown, not onChange
 - Controlled components → must track focus with useRef, not native focus
+- Event handlers: do NOT add async unless the handler has an actual await call
 - <any other project-specific pattern relevant to this ticket>
 
 ## Success condition
