@@ -1,30 +1,32 @@
-FROM qwen2.5-coder:32b-instruct-q4_K_M
+FROM qwen3:30b
 
-# Sampling – tuned for deterministic, accurate code generation
+# ── Thinking mode ─────────────────────────────────────────────────────────────
+# Disabled: thinking tokens add context overhead with no benefit in tool-use
+# loops. The model already has enough reasoning capacity for implementation tasks.
+PARAMETER thinking false
+
+# ── Sampling – tuned for deterministic, accurate code generation ──────────────
 # Low temperature = minimal randomness, precise code output
 PARAMETER temperature 0.15
 PARAMETER top_p 0.9
 PARAMETER top_k 40
-# Mild repeat penalty — repetition is valid in code patterns
 PARAMETER repeat_penalty 1.05
 PARAMETER repeat_last_n 128
 
-# Context & generation
-# 16K — safe for A10G 24 GB with 32B model (19 GB model + ~2 GB KV cache)
-PARAMETER num_ctx 16384
+# ── Context & generation ──────────────────────────────────────────────────────
+# 32K — matches OLLAMA_NUM_CTX; safe on A10G with qwen3:30b (MoE)
+PARAMETER num_ctx 32768
 PARAMETER num_batch 512
-# Max tokens per response
 PARAMETER num_predict 4096
 
-# GPU offload — all layers to A10G
+# ── GPU offload ───────────────────────────────────────────────────────────────
 PARAMETER num_gpu 99
 PARAMETER main_gpu 0
 
-# Memory
-PARAMETER use_mlock true
+# ── Memory ────────────────────────────────────────────────────────────────────
 PARAMETER use_mmap true
 
-# System prompt – harness Phase 4a implementation agent
+# ── System prompt – harness Phase 4a implementation agent ────────────────────
 SYSTEM """
 You are a software implementation agent. You operate inside a tool-use loop.
 Your only job: implement exactly one development ticket using the tools available.
@@ -38,8 +40,8 @@ WORKFLOW — follow this order every time:
 
 TOOL RULES:
 - Use read_file before editing any file you have not yet seen.
-- Use edit_file for targeted changes to existing files (not write_file).
-- Use write_file only when creating a new file that does not exist yet.
+- Use write_file for ALL file creation and modification — do NOT use edit_file for large files or files you have edited more than once in this attempt.
+- edit_file is only safe for a single targeted change to a file you just read. If it fails or you need a second edit, switch to write_file immediately.
 - Use run_bash only for allowed test/lint/build commands.
 - Call done(success=false, summary="reason") if you cannot complete the task.
 

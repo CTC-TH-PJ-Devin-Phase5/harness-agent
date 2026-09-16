@@ -28,7 +28,9 @@ check for a `**Provider:**` field:
 - **`Provider: local-llm`** — delegate implementation to the local-LLM
   worker instead of implementing yourself:
   1. Create or checkout the task branch (same branch rule as always).
-  2. Run `Bash("node harness/local-execute/index.js <handoff-path>")` where
+  2. Run `Bash("node harness/local-execute/index.js <handoff-path>", timeout: 600000)` where
+     (timeout = 600 000 ms = 10 minutes — local-execute runs up to 2 attempts × 20 turns
+     each; the default 2-minute Bash timeout is not enough and causes early exit)
      `<handoff-path>` is `context.ticket`'s corresponding handoff JSON
      (the file the orchestrator wrote before dispatching you, at
      `docs/requirements/<slug>/handoffs/<timestamp>-execute.json`).

@@ -11,8 +11,8 @@ These conventions apply to every ticket. Read them before implementing.
 
 ## Import Aliases
 
-- `@/` maps to `apps/web/src/` — always use `@/modules/auth/...` NOT `@modules/auth/...`
-- Workspace package: `@driver-app/test` runs tests
+- Check the vite.config.ts or tsconfig.json paths to confirm the exact alias for this project
+- Always use the correct prefix (e.g. `@/`) — never guess; call `read_file` on the config first
 
 ## React Testing Patterns
 
@@ -35,10 +35,20 @@ These conventions apply to every ticket. Read them before implementing.
 - Non-semantic elements (span, div) → add `data-testid` to the component, then use `getAllByTestId`
 - `getAllByRole('span')` is NOT valid — `span` is not an ARIA role
 
-## edit_file Recovery
+## write_file vs edit_file policy
 
-- If `edit_file` fails with "old_string appears N times" → use `write_file` to replace the ENTIRE file
-- Never loop retrying the same `edit_file` — switch to `write_file` immediately
+**Prefer `write_file` for all source files.** Use `edit_file` only when:
+- The file is large and you need a single, targeted change
+- You have just read the file and are confident about the exact string
+
+**Switch to `write_file` immediately if any of these are true:**
+- You have already edited this file once in this attempt
+- `edit_file` fails with "old_string appears N times" or "old_string not found"
+- The file is a component or page (LoginPage.tsx, OtpInput.tsx, etc.)
+
+Rationale: `edit_file` loses track of file state across multiple sequential edits.
+After 2+ edits, the model's mental model of the file diverges from the actual content,
+causing cascading "old_string not found" errors that consume all remaining turns.
 
 ## Code Style
 
@@ -74,7 +84,9 @@ Only modify files explicitly listed in the task string under "Files to create / 
 
 ## Project Stack
 
+<!-- Fill in after Phase 2 Spec is written for this project -->
+<!-- Example:
 - Frontend: React 18 + TypeScript 5 + Vite 5 + Tailwind CSS 3
 - Tests: Vitest 2 + @testing-library/react 14 + @testing-library/user-event 14
-- CSS: Tailwind utility classes + CSS custom properties from globals.css
-- No inline style hex values — use Tailwind classes or `var(--token-name)`
+- CSS: utility classes from the design system + CSS custom properties from globals.css
+-->

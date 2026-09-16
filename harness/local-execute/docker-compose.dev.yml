@@ -1,11 +1,15 @@
 # EC2 g5.4xlarge — NVIDIA A10G (24 GB VRAM), 16 vCPU, 64 GB RAM
 #
+# Model: qwen3:30b (MoE — 30B total, ~3B active per token)
+#   VRAM: ~17 GB at Q4_K_M — comfortable on A10G (7 GB headroom for KV cache)
+#   Speed: ~25-35 t/s (vs ~6 t/s for dense 32B)
+#   Thinking mode: disabled (adds context overhead with no benefit in tool loops)
+#
 # Usage:
 #   docker compose -f harness/local-execute/docker-compose.dev.yml up -d
 #
-# First run pulls qwen2.5-coder:32b-instruct-q4_K_M (~19 GB, 20-40 min)
-# and creates the harness-coder model from the Modelfile.
-# After that, the model is cached in the ollama-models volume.
+# First run pulls qwen3:30b (~17 GB) and creates the harness-coder model.
+# After that, model is cached in the /data/ollama volume.
 #
 # Set in harness/local-execute/.env:
 #   OLLAMA_MODEL=harness-coder
@@ -52,9 +56,9 @@ services:
       OLLAMA_MAX_QUEUE: "4"
 
       # --- Context & batching ---
-      # 16K: safe on A10G 24 GB with 32B model
-      # model=19 GB + KV cache 16K q8_0=~2 GB + CUDA overhead = ~22 GB
-      OLLAMA_NUM_CTX: "16384"
+      # 32K: safe on A10G with qwen3:30b (MoE)
+      # model=17 GB + KV cache 32K q8_0=~3 GB + CUDA overhead = ~21 GB (3 GB headroom)
+      OLLAMA_NUM_CTX: "32768"
       OLLAMA_NUM_BATCH: "512"
 
       # --- CPU threads (for non-GPU ops: tokenise, sample) ---
@@ -122,8 +126,8 @@ services:
       - sh
       - -c
       - |
-        echo ">>> Pulling qwen2.5-coder:32b-instruct-q4_K_M ..."
-        ollama pull qwen2.5-coder:32b-instruct-q4_K_M
+        echo ">>> Pulling qwen3:30b ..."
+        ollama pull qwen3:30b
         echo ">>> Creating harness-coder model from Modelfile ..."
         ollama create harness-coder -f /ollama-config/Modelfile
         echo ">>> Done. Available models:"
