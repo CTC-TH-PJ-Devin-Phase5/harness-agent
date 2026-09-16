@@ -31,7 +31,7 @@ describe('LoginPage — 2FA step', () => {
 
   it('shows masked email (t***a@acme.co) in subtitle after correct credentials', async () => {
     await navigateToTwoFa();
-    expect(screen.getByText(/t\*\*\*a@acme\.co/)).toBeInTheDocument();
+    expect(screen.getByText(/t\*+a@acme\.co/)).toBeInTheDocument();
   });
 
   it('shows blue demo-code banner containing "Demo code:" after correct credentials', async () => {

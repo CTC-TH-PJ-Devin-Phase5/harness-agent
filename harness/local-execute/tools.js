@@ -180,7 +180,13 @@ const HANDLERS = {
       return { output: stdout };
     } catch (err) {
       const out = [err.stdout, err.stderr].filter(Boolean).join('\n');
-      return { output: `Exit ${err.status ?? 1}\n${out}` };
+      // Truncate to last 60 lines so the LLM sees the failure details,
+      // not the verbose header that gets pushed out of the context window.
+      const lines = out.split('\n');
+      const truncated = lines.length > 60
+        ? `...(${lines.length - 60} lines omitted)\n` + lines.slice(-60).join('\n')
+        : out;
+      return { output: `Exit ${err.status ?? 1}\n${truncated}` };
     }
   },
 
