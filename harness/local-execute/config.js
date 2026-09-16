@@ -29,7 +29,7 @@ export default {
     baseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
     model:   process.env.OLLAMA_MODEL   ?? 'qwen3.5:4b',
     timeoutMs: Number(process.env.OLLAMA_TIMEOUT_MS ?? 180_000),
-    maxTurns: 40,
+    maxTurns: 20,
   },
 
   attempts: { max: 2 },
