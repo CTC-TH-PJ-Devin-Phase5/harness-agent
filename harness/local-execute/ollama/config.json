@@ -1,0 +1,7 @@
+{
+  "gpu_layers": 99,
+  "f16_kv": false,
+  "use_mlock": true,
+  "use_mmap": true,
+  "numa": false
+}

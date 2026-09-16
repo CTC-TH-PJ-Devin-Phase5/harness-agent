@@ -45,6 +45,7 @@
       "Bash(npm run build:*)",
       "Bash(npm run db:seed:*)",
       "Bash(npm run db:migrate:*)",
+      "Bash(pnpm install:*)",
       "Bash(pnpm test:*)",
       "Bash(pnpm run test:*)",
       "Bash(pnpm run lint:*)",

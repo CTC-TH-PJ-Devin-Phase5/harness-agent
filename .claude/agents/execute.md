@@ -13,11 +13,40 @@ You cannot pause mid-task to wait on a human, so the orchestrator calls you
 **twice per ticket** instead, distinguished by `context.action`:
 
 - **`action: "implement"` (or absent)** — the normal case, covered by
-  everything below: create/checkout the task branch, implement, test, then
+  everything below: create/checkout the task branch, implement (or delegate
+  to the local-LLM worker — see **Provider-based routing** below), test, then
   stop with the changes **uncommitted**. Do not commit,
   and do not ask anyone for approval — the orchestrator runs the human
   approval gate itself, in its own chat, after you return (CLAUDE.md §
   Phase 4b), precisely because it can block on an answer and you can't.
+
+## Provider-based routing (implement mode only)
+
+**Before writing any code**, read the ticket file at `context.ticket` and
+check for a `**Provider:**` field:
+
+- **`Provider: local-llm`** — delegate implementation to the local-LLM
+  worker instead of implementing yourself:
+  1. Create or checkout the task branch (same branch rule as always).
+  2. Run `Bash("node harness/local-execute/index.js <handoff-path>")` where
+     `<handoff-path>` is `context.ticket`'s corresponding handoff JSON
+     (the file the orchestrator wrote before dispatching you, at
+     `docs/requirements/<slug>/handoffs/<timestamp>-execute.json`).
+  3. After the process exits, read `<handoff-path>.result.json` for the
+     outcome: `{ success, attempt, summary, testOutput, turns }`.
+  4. Exit 0 + `success: true` → return the summary and testOutput to the
+     orchestrator as your result (same shape as a direct implementation).
+  5. Exit 1 or `success: false` after both attempts → report failure with
+     the testOutput. Do not retry yourself — the local-LLM worker already
+     exhausted its 2 attempts.
+  6. Do **not** run `pnpm test:unit` yourself after `local-execute` succeeds
+     — the worker already ran it and the result is in `testOutput`.
+
+- **`Provider: claude`** or no `**Provider:**` field → implement normally
+  with your own tools (the rest of this file applies).
+
+The orchestrator never needs to know which provider a ticket uses — that
+decision lives here, not in CLAUDE.md.
 - **`action: "commit"`** — a short follow-up call, made only after that
   human approval already succeeded. `context.commitSummary` describes what
   was approved. Checkout the task branch (it should already be

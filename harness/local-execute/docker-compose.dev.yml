@@ -1,0 +1,133 @@
+# EC2 g5.4xlarge — NVIDIA A10G (24 GB VRAM), 16 vCPU, 64 GB RAM
+#
+# Usage:
+#   docker compose -f harness/local-execute/docker-compose.dev.yml up -d
+#
+# First run pulls qwen2.5-coder:32b-instruct-q4_K_M (~19 GB, 20-40 min)
+# and creates the harness-coder model from the Modelfile.
+# After that, the model is cached in the ollama-models volume.
+#
+# Set in harness/local-execute/.env:
+#   OLLAMA_MODEL=harness-coder
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: harness-ollama
+    restart: unless-stopped
+
+    # ── GPU ──────────────────────────────────────────────────────────────────
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    # ── Ports ─────────────────────────────────────────────────────────────────
+    ports:
+      - "127.0.0.1:11434:11434"
+
+    # ── Volumes ───────────────────────────────────────────────────────────────
+    volumes:
+      - /data/ollama:/root/.ollama
+      - ./ollama/config:/etc/ollama     # config.json (gpu_layers, mlock, mmap)
+
+    # ── Environment ───────────────────────────────────────────────────────────
+    environment:
+      # --- GPU / CUDA ---
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      OLLAMA_NUM_GPU: "1"               # A10G = 1 GPU
+
+      # --- Memory ---
+      # 0.92 × 24 GB = 22 GB for model + KV; leaves ~2 GB for CUDA overhead
+      OLLAMA_GPU_MEMORY_FRACTION: "0.92"
+
+      # --- Concurrency ---
+      # harness runs sequential (1 ticket at a time) → 1 parallel slot
+      # saves VRAM for larger context window
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_QUEUE: "4"
+
+      # --- Context & batching ---
+      # 16K: safe on A10G 24 GB with 32B model
+      # model=19 GB + KV cache 16K q8_0=~2 GB + CUDA overhead = ~22 GB
+      OLLAMA_NUM_CTX: "16384"
+      OLLAMA_NUM_BATCH: "512"
+
+      # --- CPU threads (for non-GPU ops: tokenise, sample) ---
+      # g5.4xlarge has 16 vCPU; 12 threads leaves headroom for OS + Docker
+      OLLAMA_NUM_THREAD: "12"
+
+      # --- KV cache ---
+      OLLAMA_FLASH_ATTENTION: "1"       # major speedup on NVIDIA GPU
+      OLLAMA_KV_CACHE_TYPE: "q8_0"      # halves KV VRAM → more room for context
+
+      # --- Model lifecycle ---
+      # keep model loaded between Phase 4a tool-use turns
+      # without this the model unloads between calls and each turn pays load cost
+      OLLAMA_KEEP_ALIVE: "30m"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+
+      # --- Network ---
+      OLLAMA_HOST: 0.0.0.0:11434
+
+      # --- Logging ---
+      OLLAMA_DEBUG: "0"
+
+    # ── Kernel / IPC ──────────────────────────────────────────────────────────
+    ipc: host                           # faster CUDA IPC
+    shm_size: "8gb"                     # shared memory for CUDA kernels
+
+    # ── Resource limits ───────────────────────────────────────────────────────
+    ulimits:
+      memlock: -1                       # required for GPU pinned memory
+      stack: 67108864                   # 64 MB stack
+
+    # ── Health check ──────────────────────────────────────────────────────────
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s                 # GPU model load needs more time
+
+    # ── Logging ───────────────────────────────────────────────────────────────
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
+
+  # ── Model initialiser ─────────────────────────────────────────────────────
+  # Runs once after ollama is healthy:
+  #   1. Pull base model from Ollama registry (~19 GB, first run only)
+  #   2. Create harness-coder model from Modelfile (bakes in sampling params
+  #      and the Phase 4a system prompt)
+  # Subsequent runs skip the pull (model is cached in ollama-models volume).
+  model-init:
+    image: ollama/ollama:latest
+    container_name: harness-model-init
+    restart: "no"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./ollama:/ollama-config         # mounts Modelfile
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint:
+      - sh
+      - -c
+      - |
+        echo ">>> Pulling qwen2.5-coder:32b-instruct-q4_K_M ..."
+        ollama pull qwen2.5-coder:32b-instruct-q4_K_M
+        echo ">>> Creating harness-coder model from Modelfile ..."
+        ollama create harness-coder -f /ollama-config/Modelfile
+        echo ">>> Done. Available models:"
+        ollama list
+
+# No named volumes — model data stored on /data/ollama (NVMe SSD)
+# Mount NVMe before starting: see setup-ec2.sh
