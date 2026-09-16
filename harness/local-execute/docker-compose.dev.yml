@@ -35,7 +35,8 @@ services:
 
     # ── Volumes ───────────────────────────────────────────────────────────────
     volumes:
-      - /data/ollama:/root/.ollama
+      # Docker named volume — stored on EBS root, persists across EC2 stop/start
+      - ollama-models:/root/.ollama
       - ./ollama/config:/etc/ollama     # config.json (gpu_layers, mlock, mmap)
 
     # ── Environment ───────────────────────────────────────────────────────────
@@ -133,5 +134,6 @@ services:
         echo ">>> Done. Available models:"
         ollama list
 
-# No named volumes — model data stored on /data/ollama (NVMe SSD)
-# Mount NVMe before starting: see setup-ec2.sh
+volumes:
+  ollama-models:
+    driver: local  # stored in /var/lib/docker/volumes/ on EBS root — persists across EC2 stop/start
