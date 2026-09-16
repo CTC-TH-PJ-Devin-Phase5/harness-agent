@@ -72,7 +72,7 @@ One ticket at a time, dependency order (`execution.mode`, default sequential). D
 
 Dispatch per § Delegation — on Claude Code, the Agent tool with `subagent_type: "execute"`, after writing the handoff log yourself. Payload: `{ subAgent: "execute", task, context: { ticket, specPath, action: "implement" } }`.
 
-`execute` creates or checks out **the task branch** — one branch per task, named `<slug>` after the requirements directory, created off `main` by the first ticket and reused by every ticket after it — then runs this loop (max two attempts):
+`execute` creates or checks out **the task branch** — one branch per task, named `<slug>` after the requirements directory, created off `harness/base` by the first ticket and reused by every ticket after it — then runs this loop (max two attempts):
 
 1. Implement.
 2. Run `pnpm test:unit` on the host via execute's Bash. That is the whole test gate.
@@ -93,7 +93,7 @@ You do this. After `execute` reports success, load `.claude/rules/coding-standar
 
 Read this ticket file's own `## Execution log` table and the test output `execute` returned as part of this review — `pnpm test:unit` must show a pass on the latest attempt for this to count as tests-passing; if that run is missing or ambiguous, treat that as a failed gate, not a pass, and do not check AC off it. Note in your review which AC the tests actually covered.
 
-Reading a diff is review, not implementation, so you do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/`merge-base`, allowlisted in `.claude/settings.json`). `git diff <base>` shows uncommitted working-tree changes just as well as committed ones, so this is enough even though nothing has landed yet. **The fixed point is `HEAD`** — every earlier ticket in this task is already committed on this same branch, so `git diff HEAD` is exactly this ticket's work and nothing else. (`git diff main...HEAD` is the whole task so far — that's Phase 5's fixed point, not this gate's.) Two deviations from the upstream `code-review` skill: the spec source is always `docs/requirements/<slug>/spec.md` plus this ticket's AC, so skip its issue-tracker lookup and never ask for `/setup-matt-pocock-skills`; and mutating git (`push`, `reset --hard`, `clean`) stays denied to you.
+Reading a diff is review, not implementation, so you do hold read-only git (`git diff`/`log`/`show`/`rev-parse`/`merge-base`, allowlisted in `.claude/settings.json`). `git diff <base>` shows uncommitted working-tree changes just as well as committed ones, so this is enough even though nothing has landed yet. **The fixed point is `HEAD`** — every earlier ticket in this task is already committed on this same branch, so `git diff HEAD` is exactly this ticket's work and nothing else. (`git diff harness/base...HEAD` is the whole task so far — that's Phase 5's fixed point, not this gate's.) Two deviations from the upstream `code-review` skill: the spec source is always `docs/requirements/<slug>/spec.md` plus this ticket's AC, so skip its issue-tracker lookup and never ask for `/setup-matt-pocock-skills`; and mutating git (`push`, `reset --hard`, `clean`) stays denied to you.
 
 If the review finds a miss, stop here (see the STOP rule in 4c) — do not ask for human approval on a diff that already failed review.
 
@@ -121,7 +121,7 @@ The tip of the work lives on the task branch `<slug>` — one commit per complet
 
 ## Phase 5 — Review (whole task)
 
-Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the task branch `<slug>` (fixed point: `git diff main...HEAD`) against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
+Once every ticket has its AC checked, load the same Standards rules as 4b. Compare the task branch `<slug>` (fixed point: `git diff harness/base...HEAD`) against `spec.md` and every ticket's acceptance criteria (`code-review` skill). Confirm the `[x]` marks still match the code. Write `docs/requirements/<slug>/review.md`. Present a summary and ask approve/reject. Wait for an explicit human answer.
 
 Confirm every ticket's own `## Execution log` table shows a passing final `pnpm test:unit` attempt, and cite that log in `review.md`. Call out explicitly any ticket whose log doesn't show unit passing, or where the log is missing entirely — that means its tests were never recorded, and the decision must not be made without flagging that as unverified.
 
@@ -130,7 +130,7 @@ Confirm every ticket's own `## Execution log` table shows a passing final `pnpm 
 
 ### After approval — recommend the PR, don't open it
 
-The harness ends at an approved task branch; it does not merge. So once `LEARNING.md` is written, close out by pointing the human at `.claude/skills/create-pr/SKILL.md`: name the task branch `<slug>`, the target (`main`), the commit count (one per ticket), and `docs/requirements/<slug>/review.md` as the material for the PR body. Say that steps 1–3 of that skill (review the diff, validate, commit) are already satisfied — Phase 4 committed every ticket after its own approval gate and the working tree is clean — so only its steps 4–5 remain: push the branch and open the PR against `main`.
+The harness ends at an approved task branch; it does not merge. So once `LEARNING.md` is written, close out by pointing the human at `.claude/skills/create-pr/SKILL.md`: name the task branch `<slug>`, the target (`harness/base`), the commit count (one per ticket), and `docs/requirements/<slug>/review.md` as the material for the PR body. Say that steps 1–3 of that skill (review the diff, validate, commit) are already satisfied — Phase 4 committed every ticket after its own approval gate and the working tree is clean — so only its steps 4–5 remain: push the branch and open the PR against `harness/base`.
 
 **Recommending is where your job ends. Do not run it yourself**: `git push` is denied to you, opening a PR publishes outward-facing content, and merging is out of scope for this harness (`create-pr` § Rules forbids it too). The human invokes `/create-pr` themselves, or opens the PR by hand — either way that is a fresh decision they make after approving, not something the approval already authorized.
 

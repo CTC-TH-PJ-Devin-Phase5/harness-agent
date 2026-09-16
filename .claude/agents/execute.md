@@ -151,7 +151,7 @@ and elsewhere in this file; where they do, the harness rule wins:
     rev-parse --verify --quiet refs/heads/<task-slug>` via `Bash` (spell
     out `refs/heads/` so a same-named tag or remote-tracking ref can't
     answer for a local branch that isn't there). Non-zero exit → this is
-    the task's first ticket, so `git checkout -b <task-slug> main`. Exit 0
+    the task's first ticket, so `git checkout -b <task-slug> harness/base`. Exit 0
     → an earlier ticket already created it, so `git checkout <task-slug>`.
     That one check covers every case: first ticket, later ticket, a retry
     (attempt 2/2), a Phase-5 reject re-run, and an `action: "commit"`
