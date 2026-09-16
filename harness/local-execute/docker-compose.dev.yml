@@ -1,9 +1,10 @@
 # EC2 g5.4xlarge — NVIDIA A10G (24 GB VRAM), 16 vCPU, 64 GB RAM
 #
-# Model: qwen3:30b (MoE — 30B total, ~3B active per token)
-#   VRAM: ~17 GB at Q4_K_M — comfortable on A10G (7 GB headroom for KV cache)
-#   Speed: ~25-35 t/s (vs ~6 t/s for dense 32B)
-#   Thinking mode: disabled (adds context overhead with no benefit in tool loops)
+# Model: qwen2.5-coder:32b-instruct-q3_K_M (dense 32B, code-specific)
+#   VRAM: ~15 GB at Q3_K_M — leaves ~5 GB headroom for 32K KV cache
+#   Speed: ~8-12 t/s (slower than qwen3 MoE, but much higher code quality)
+#   Aider benchmark: ~73.7 vs ~40 for qwen3:30b
+#   Context: 32K safe (Q3_K_M model ~15 GB + KV ~4 GB = ~19 GB total)
 #
 # Usage:
 #   docker compose -f harness/local-execute/docker-compose.dev.yml up -d
@@ -57,8 +58,8 @@ services:
       OLLAMA_MAX_QUEUE: "4"
 
       # --- Context & batching ---
-      # 32K: safe on A10G with qwen3:30b (MoE)
-      # model=17 GB + KV cache 32K q8_0=~3 GB + CUDA overhead = ~21 GB (3 GB headroom)
+      # 32K: safe on A10G with qwen2.5-coder:32b Q3_K_M
+      # model=~15 GB + KV cache 32K q8_0=~4 GB + CUDA overhead = ~20 GB (4 GB headroom)
       OLLAMA_NUM_CTX: "32768"
       OLLAMA_NUM_BATCH: "512"
 
@@ -127,8 +128,8 @@ services:
       - sh
       - -c
       - |
-        echo ">>> Pulling qwen3:30b ..."
-        ollama pull qwen3:30b
+        echo ">>> Pulling qwen2.5-coder:32b-instruct-q3_K_M ..."
+        ollama pull qwen2.5-coder:32b-instruct-q3_K_M
         echo ">>> Creating harness-coder model from Modelfile ..."
         ollama create harness-coder -f /ollama-config/Modelfile
         echo ">>> Done. Available models:"

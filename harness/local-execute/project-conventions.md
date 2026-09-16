@@ -2,10 +2,35 @@
 
 These conventions apply to every ticket. Read them before implementing.
 
+---
+
+## ⚠️ STOP — READ THESE TWO RULES FIRST
+
+### Rule 1: VITEST — NOT JEST
+
+```
+✅ CORRECT:  vi.fn()    vi.mock()    vi.spyOn()
+❌ WRONG:    jest.fn()  jest.mock()  jest.spyOn()
+```
+
+This project uses **Vitest**, not Jest. `jest` does not exist. Writing `jest.*` anywhere
+causes an immediate ReferenceError crash. `vi` is a global — no import needed.
+
+### Rule 2: write_file — ALWAYS
+
+```
+✅ ALWAYS USE:  write_file(path, full_content)
+❌ NEVER USE:   edit_file
+```
+
+Always write the complete file from top to bottom. Never use edit_file — it fails
+on exact-string mismatches, wastes turns, and corrupts file state across multiple edits.
+
+---
+
 ## Testing Framework
 
-- **Vitest** — use `vi.fn()`, `vi.mock()`, `vi.spyOn()`
-- **NEVER** use `jest.fn()`, `jest.mock()`, `jest.spyOn()` — this project does NOT use Jest
+- **Vitest** — `vi.fn()`, `vi.mock()`, `vi.spyOn()` (see Rule 1 above)
 - Test environment: jsdom via `@testing-library/react`
 - Setup file: `@testing-library/jest-dom` (provides `toBeInTheDocument()` etc.)
 
@@ -37,18 +62,10 @@ These conventions apply to every ticket. Read them before implementing.
 
 ## write_file vs edit_file policy
 
-**Prefer `write_file` for all source files.** Use `edit_file` only when:
-- The file is large and you need a single, targeted change
-- You have just read the file and are confident about the exact string
+**Always use `write_file`.** Never use `edit_file`.
 
-**Switch to `write_file` immediately if any of these are true:**
-- You have already edited this file once in this attempt
-- `edit_file` fails with "old_string appears N times" or "old_string not found"
-- The file is a component or page (LoginPage.tsx, OtpInput.tsx, etc.)
-
-Rationale: `edit_file` loses track of file state across multiple sequential edits.
-After 2+ edits, the model's mental model of the file diverges from the actual content,
-causing cascading "old_string not found" errors that consume all remaining turns.
+Write the complete file content from top to bottom every time. This is the correct
+strategy for this harness — whole-file rewrites are reliable; targeted edits are not.
 
 ## Code Style
 
