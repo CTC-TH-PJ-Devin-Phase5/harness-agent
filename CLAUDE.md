@@ -34,7 +34,33 @@ You do this. Read and follow `.claude/skills/to-tickets/SKILL.md`. Break the spe
 
 - Quiz the human on the breakdown (granularity, blocking edges, merge/split) and iterate until they approve.
 - Write **one file per ticket** at `docs/requirements/<slug>/tickets/<NN>-<ticket-slug>.md`, numbered from `01`, blockers first. No application/production code.
-- Each file must include: title, status, related spec section, acceptance criteria, **Depends on** (blocking edges), attempts counter starting at `0/2`, and an empty `## Execution log`. The ticket gate is always `pnpm test:unit`.
+- Each file must include: title, status, **Provider** (see below), related spec section, acceptance criteria, **Depends on** (blocking edges), attempts counter starting at `0/2`, and an empty `## Execution log`. The ticket gate is always `pnpm test:unit`.
+
+### Provider assignment rule
+
+Every ticket must have a `**Provider:**` field. Use this rule:
+
+| Assign | When |
+|---|---|
+| `Provider: claude` | Framework config/scaffold, **test files**, any ticket where correctness depends on framework API knowledge (Vitest, tsconfig, package.json, etc.) |
+| `Provider: local-llm` | Component logic, business logic, implementation against a pre-existing spec or test file |
+
+**Test-first split rule**: Any `Provider: local-llm` ticket that requires writing both tests AND implementation must be split into two tickets:
+- `NNa` — write test files only (`Provider: claude`) — blocked by nothing new
+- `NNb` — implement to make tests pass (`Provider: local-llm`) — blocked by `NNa`
+
+This prevents the local LLM from struggling with framework-specific test patterns it doesn't reliably know (e.g. Vitest vs Jest, controlled component wrappers, ARIA query patterns).
+
+### Task string quality rule (for local-llm tickets)
+
+The handoff `task` string for every `Provider: local-llm` dispatch must include all of:
+1. **Exact file paths** to create (no LLM guessing on filenames)
+2. **Files to read first** (existing tests + related source files)
+3. **Success condition**: exact command and expected pass count
+4. **Scope boundary**: what NOT to touch
+5. Any **known failure pattern** diagnosed from prior attempts (e.g. "Backspace must use onKeyDown not onChange")
+
+Read `harness/local-execute/project-conventions.md` and `LEARNING.md` before writing the task string — both are injected into the local LLM at runtime but spelling out project-specific patterns in the task string reinforces them.
 
 Gate: that tickets directory has at least one ticket file, and the human approved the breakdown.
 
