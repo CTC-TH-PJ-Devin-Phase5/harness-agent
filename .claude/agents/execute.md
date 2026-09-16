@@ -36,11 +36,18 @@ check for a `**Provider:**` field:
      outcome: `{ success, attempt, summary, testOutput, turns }`.
   4. Exit 0 + `success: true` → return the summary and testOutput to the
      orchestrator as your result (same shape as a direct implementation).
-  5. Exit 1 or `success: false` after both attempts → report failure with
-     the testOutput. Do not retry yourself — the local-LLM worker already
-     exhausted its 2 attempts.
+  5. Exit 1 or `success: false` after both attempts → **STOP and report
+     failure to the orchestrator immediately.** Do not retry yourself, do
+     not implement the ticket yourself, do not fix what the worker could
+     not fix. The orchestrator needs to know the local-LLM failed so it
+     can diagnose and improve the task string or model conventions.
+     Writing code yourself when the local-LLM fails defeats the purpose
+     of the hybrid architecture and makes the failure invisible.
   6. Do **not** run `pnpm test:unit` yourself after `local-execute` succeeds
      — the worker already ran it and the result is in `testOutput`.
+  7. Do **not** write, edit, or fix any source files yourself when Provider
+     is `local-llm` — your only actions are: checkout branch, run Bash,
+     read result.json, return to orchestrator.
 
 - **`Provider: claude`** or no `**Provider:**` field → implement normally
   with your own tools (the rest of this file applies).

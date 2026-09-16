@@ -35,7 +35,15 @@ async function main() {
 
   const ticketContent = fs.readFileSync(ticketPath, 'utf8');
   const specContent = fs.readFileSync(specPath, 'utf8');
-  const systemPrompt = buildSystemPrompt({ task, ticketContent, specContent });
+
+  // Inject project conventions so the LLM knows project-specific patterns
+  // (Vitest vs Jest, testing wrappers, import aliases, etc.)
+  const conventionsPath = path.join(__dirname, 'project-conventions.md');
+  const conventions = fs.existsSync(conventionsPath)
+    ? fs.readFileSync(conventionsPath, 'utf8')
+    : '';
+
+  const systemPrompt = buildSystemPrompt({ task, ticketContent, specContent, conventions });
 
   const resultPath = absHandoff.replace(/\.json$/, '.result.json');
 
@@ -68,10 +76,11 @@ async function main() {
   process.exit(lastResult.success ? 0 : 1);
 }
 
-function buildSystemPrompt({ task, ticketContent, specContent }) {
+function buildSystemPrompt({ task, ticketContent, specContent, conventions = '' }) {
   return `\
 You are an implementation agent (Phase 4a of the development harness).
 Implement EXACTLY what the ticket requires — no more, no less.
+${conventions ? `\n${conventions}\n` : ''}
 
 ## Rules
 - Write tests FIRST (TDD: red → green → refactor).
