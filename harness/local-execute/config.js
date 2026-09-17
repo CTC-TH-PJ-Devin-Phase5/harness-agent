@@ -34,8 +34,9 @@ export default {
     timeoutMs:     Number(process.env.OLLAMA_TIMEOUT_MS    ?? 180_000),
     maxTurns:      20,
     // Context window: Ollama default is 2048 — far too small for code files.
-    // qwen2.5-coder:32b supports 128k; 32k is the sweet spot for coding tasks.
-    numCtx:        Number(process.env.OLLAMA_NUM_CTX       ?? 32_768),
+    // 16K: model ~20 GB + KV cache ~0.7 GB = ~20.7 GB, fits A10G 24 GB safely.
+    // (32K would need ~4.3 GB KV + 20 GB model = 24.3 GB, exceeds A10G.)
+    numCtx:        Number(process.env.OLLAMA_NUM_CTX       ?? 16_384),
     // Low temperature reduces hallucination on deterministic coding tasks.
     temperature:   Number(process.env.OLLAMA_TEMPERATURE   ?? 0.1),
     topP:          Number(process.env.OLLAMA_TOP_P         ?? 0.9),

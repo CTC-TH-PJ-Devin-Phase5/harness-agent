@@ -59,9 +59,9 @@ services:
       OLLAMA_MAX_QUEUE: "4"
 
       # --- Context & batching ---
-      # 32K: safe on A10G with qwen3:32b Q4_K_M
-      # model ~20 GB + KV cache 32K q8_0 ~4 GB = ~24 GB (tight but fits)
-      OLLAMA_NUM_CTX: "32768"
+      # 16K: model ~20 GB + KV cache 16K q4_0 ~0.7 GB = ~20.7 GB (safe on A10G 24 GB)
+      # 32K would need ~4.3 GB KV (q8_0) = 24.3 GB which exceeds 24 GB VRAM
+      OLLAMA_NUM_CTX: "16384"
       OLLAMA_NUM_BATCH: "512"
 
       # --- CPU threads (for non-GPU ops: tokenise, sample) ---
@@ -70,7 +70,7 @@ services:
 
       # --- KV cache ---
       OLLAMA_FLASH_ATTENTION: "1"       # major speedup on NVIDIA GPU
-      OLLAMA_KV_CACHE_TYPE: "q8_0"      # halves KV VRAM → more room for context
+      OLLAMA_KV_CACHE_TYPE: "q4_0"      # q4_0 reduces KV VRAM vs q8_0 — fits 24 GB
 
       # --- Model lifecycle ---
       # keep model loaded between Phase 4a tool-use turns

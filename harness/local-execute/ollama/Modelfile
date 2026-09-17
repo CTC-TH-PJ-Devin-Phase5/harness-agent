@@ -8,8 +8,9 @@ PARAMETER repeat_penalty 1.05
 PARAMETER repeat_last_n 128
 
 # ── Context & generation ──────────────────────────────────────────────────────
-# 32K — safe on A10G with qwen3:32b Q4_K_M (~20 GB model + ~4 GB KV)
-PARAMETER num_ctx 32768
+# 16K — model ~20 GB + KV cache q4_0 ~0.7 GB = ~20.7 GB, fits A10G 24 GB safely
+# (32K would need ~4.3 GB KV = 24.3 GB total, exceeds A10G)
+PARAMETER num_ctx 16384
 PARAMETER num_batch 512
 PARAMETER num_predict 4096
 
