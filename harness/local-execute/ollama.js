@@ -25,8 +25,13 @@ export async function chat(messages, tools) {
     messages,
     tools,
     stream: false,
-    // Disable Qwen3 thinking mode — thinking tokens waste context in tool-use loops
-    think: false,
+    think: config.ollama.think,
+    options: {
+      num_ctx:        config.ollama.numCtx,
+      temperature:    config.ollama.temperature,
+      top_p:          config.ollama.topP,
+      repeat_penalty: config.ollama.repeatPenalty,
+    },
   };
 
   const controller = new AbortController();

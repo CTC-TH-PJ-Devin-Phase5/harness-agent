@@ -1,15 +1,16 @@
 # EC2 g5.4xlarge — NVIDIA A10G (24 GB VRAM), 16 vCPU, 64 GB RAM
 #
-# Model: qwen2.5-coder:32b-instruct-q3_K_M (dense 32B, code-specific)
-#   VRAM: ~15 GB at Q3_K_M — leaves ~5 GB headroom for 32K KV cache
-#   Speed: ~8-12 t/s (slower than qwen3 MoE, but much higher code quality)
-#   Aider benchmark: ~73.7 vs ~40 for qwen3:30b
-#   Context: 32K safe (Q3_K_M model ~15 GB + KV ~4 GB = ~19 GB total)
+# Model: qwen3:32b (dense 32B, hybrid thinking/non-thinking mode)
+#   VRAM: ~20 GB at Q4_K_M — leaves ~4 GB headroom for 32K KV cache
+#   Speed: ~15-25 t/s on A10G
+#   HumanEval: ~95% in think mode — top coding benchmark for local models
+#   Context: 32K safe (Q4_K_M model ~20 GB + KV ~4 GB = ~24 GB, fits A10G)
+#   Think mode: supported natively — enabled via OLLAMA_THINK=true in config
 #
 # Usage:
 #   docker compose -f harness/local-execute/docker-compose.dev.yml up -d
 #
-# First run pulls qwen3:30b (~17 GB) and creates the harness-coder model.
+# First run pulls qwen3:32b (~20 GB) and creates the harness-coder model.
 # After that, model is cached in the /data/ollama volume.
 #
 # Set in harness/local-execute/.env:
@@ -58,8 +59,8 @@ services:
       OLLAMA_MAX_QUEUE: "4"
 
       # --- Context & batching ---
-      # 32K: safe on A10G with qwen2.5-coder:32b Q3_K_M
-      # model=~15 GB + KV cache 32K q8_0=~4 GB + CUDA overhead = ~20 GB (4 GB headroom)
+      # 32K: safe on A10G with qwen3:32b Q4_K_M
+      # model ~20 GB + KV cache 32K q8_0 ~4 GB = ~24 GB (tight but fits)
       OLLAMA_NUM_CTX: "32768"
       OLLAMA_NUM_BATCH: "512"
 
@@ -109,7 +110,7 @@ services:
 
   # ── Model initialiser ─────────────────────────────────────────────────────
   # Runs once after ollama is healthy:
-  #   1. Pull base model from Ollama registry (~19 GB, first run only)
+  #   1. Pull base model from Ollama registry (~20 GB, first run only)
   #   2. Create harness-coder model from Modelfile (bakes in sampling params
   #      and the Phase 4a system prompt)
   # Subsequent runs skip the pull (model is cached in ollama-models volume).
@@ -128,8 +129,8 @@ services:
       - sh
       - -c
       - |
-        echo ">>> Pulling qwen2.5-coder:32b-instruct-q3_K_M ..."
-        ollama pull qwen2.5-coder:32b-instruct-q3_K_M
+        echo ">>> Pulling qwen3:32b ..."
+        ollama pull qwen3:32b
         echo ">>> Creating harness-coder model from Modelfile ..."
         ollama create harness-coder -f /ollama-config/Modelfile
         echo ">>> Done. Available models:"

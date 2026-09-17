@@ -1,0 +1,56 @@
+model_list:
+  # ── Router 1: AWS Bedrock (main Claude Code orchestrator session) ────────────
+  # Uses AWS credentials from the container environment — no Anthropic API key needed.
+  # Bedrock model ID uses "anthropic." prefix, not "-" date suffix.
+
+  - model_name: claude-sonnet-4-6
+    litellm_params:
+      model: bedrock/arn:aws:bedrock:ap-northeast-1:960972381399:application-inference-profile/ju2f1h5g0y56
+      aws_region_name: os.environ/AWS_REGION
+      aws_role_name: arn:aws:iam::960972381399:role/FY2026-POC8
+
+  # ── Router 2: OpenRouter (execute sub-agent) ─────────────────────────────────
+  # Set the execute agent's model frontmatter to one of these model_name values.
+
+  - model_name: openrouter/openai/gpt-4o
+    litellm_params:
+      model: openrouter/openai/gpt-4o
+      api_key: os.environ/OPENROUTER_API_KEY
+      api_base: https://openrouter.ai/api/v1
+
+  # ── Router 3: haiku alias → local Ollama ────────────────────────────────────
+  # Claude Code maps "haiku" → "claude-haiku-4-5-20251001". Routes to local LLM.
+  # Set OLLAMA_BASE_URL in harness/litellm/.env (e.g. http://<ec2-ip>:11434).
+
+  - model_name: claude-haiku-4-5-20251001
+    litellm_params:
+      model: ollama/harness-coder
+      api_base: os.environ/OLLAMA_BASE_URL
+
+  - model_name: openrouter/anthropic/claude-3.5-sonnet
+    litellm_params:
+      model: openrouter/anthropic/claude-3.5-sonnet
+      api_key: os.environ/OPENROUTER_API_KEY
+      api_base: https://openrouter.ai/api/v1
+
+router_settings:
+  # Health-check each backend before routing — catches a dead Ollama endpoint
+  # before the request is sent and wastes a turn.
+  enable_pre_call_checks: true
+
+litellm_settings:
+  # Silently drop unsupported parameters (e.g. Claude-specific fields OpenRouter ignores)
+  drop_params: true
+  # Retry twice on transient errors before failing the request
+  num_retries: 2
+  # Match OLLAMA_TIMEOUT_MS (10 min) so LiteLLM doesn't cut the connection
+  # before Ollama finishes a long code-generation response.
+  request_timeout: 600
+
+general_settings:
+  # LiteLLM accepts any Bearer token matching LITELLM_MASTER_KEY.
+  # Since you're on Bedrock (no ANTHROPIC_API_KEY), set a fixed shared secret:
+  #   LITELLM_MASTER_KEY=sk-harness  in docker-compose .env
+  #   ANTHROPIC_API_KEY=sk-harness   in .claude/settings.local.json
+  # Both values must match so Claude Code's Bearer token is accepted.
+  master_key: os.environ/LITELLM_MASTER_KEY

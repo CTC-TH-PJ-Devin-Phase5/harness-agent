@@ -26,10 +26,21 @@ export default {
   repoRoot: REPO_ROOT,
 
   ollama: {
-    baseUrl: process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434',
-    model:   process.env.OLLAMA_MODEL   ?? 'qwen3.5:4b',
-    timeoutMs: Number(process.env.OLLAMA_TIMEOUT_MS ?? 180_000),
-    maxTurns: 20,
+    baseUrl:       process.env.OLLAMA_BASE_URL        ?? 'http://localhost:11434',
+    model:         process.env.OLLAMA_MODEL           ?? 'harness-coder',
+    // think: chain-of-thought scratchpad — supported by qwen3:32b (the default base model).
+    // Enabled by default; set OLLAMA_THINK=false to disable for faster commit dispatches.
+    think:         process.env.OLLAMA_THINK !== 'false',
+    timeoutMs:     Number(process.env.OLLAMA_TIMEOUT_MS    ?? 180_000),
+    maxTurns:      20,
+    // Context window: Ollama default is 2048 — far too small for code files.
+    // qwen2.5-coder:32b supports 128k; 32k is the sweet spot for coding tasks.
+    numCtx:        Number(process.env.OLLAMA_NUM_CTX       ?? 32_768),
+    // Low temperature reduces hallucination on deterministic coding tasks.
+    temperature:   Number(process.env.OLLAMA_TEMPERATURE   ?? 0.1),
+    topP:          Number(process.env.OLLAMA_TOP_P         ?? 0.9),
+    // Penalise token repetition — reduces stuck loops in long completions.
+    repeatPenalty: Number(process.env.OLLAMA_REPEAT_PENALTY ?? 1.1),
   },
 
   attempts: { max: 2 },

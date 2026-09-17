@@ -98,7 +98,7 @@ echo " ready!"
 
 # ── 9. Pull model + create harness-coder ──────────────────────────────────────
 echo ""
-echo ">>> Pulling qwen2.5-coder:32b (~19 GB) and creating harness-coder model..."
+echo ">>> Pulling qwen3:32b (~20 GB) and creating harness-coder model..."
 echo ">>> This takes 20-40 minutes on first run. Logs below:"
 echo ""
 docker compose -f "$COMPOSE" up model-init

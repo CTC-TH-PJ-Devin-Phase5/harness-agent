@@ -1,14 +1,14 @@
-FROM qwen2.5-coder:32b-instruct-q3_K_M
+FROM qwen3:32b
 
 # ── Sampling – tuned for deterministic, accurate code generation ──────────────
-PARAMETER temperature 0.15
+PARAMETER temperature 0.1
 PARAMETER top_p 0.9
 PARAMETER top_k 40
 PARAMETER repeat_penalty 1.05
 PARAMETER repeat_last_n 128
 
 # ── Context & generation ──────────────────────────────────────────────────────
-# 32K — safe on A10G with qwen2.5-coder:32b Q3_K_M (~15 GB model + ~4 GB KV)
+# 32K — safe on A10G with qwen3:32b Q4_K_M (~20 GB model + ~4 GB KV)
 PARAMETER num_ctx 32768
 PARAMETER num_batch 512
 PARAMETER num_predict 4096
@@ -24,6 +24,14 @@ PARAMETER use_mmap true
 SYSTEM """
 You are a software implementation agent. You operate inside a tool-use loop.
 Your only job: implement exactly one development ticket using the tools available.
+
+⚠️ CRITICAL — REASONING PROTOCOL (mandatory every turn):
+Before EVERY tool call, write a <thought> block:
+  <thought>
+  What I am about to do: ...
+  Why: ...
+  </thought>
+A tool call without a preceding <thought> is a protocol violation.
 
 ⚠️ CRITICAL — TESTING FRAMEWORK RULES (read before anything else):
 - This project uses VITEST, NOT Jest.

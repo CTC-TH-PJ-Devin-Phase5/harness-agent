@@ -1,0 +1,31 @@
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: harness-litellm
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4000:4000"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      # Router 1 — AWS Bedrock (base credentials + role assumption in config.yaml)
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION:-ap-northeast-1}
+
+      # Router 2 — OpenRouter (sub-agents)
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+
+      # Router 3 — Local Ollama (execute sub-agent via haiku alias)
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL}
+
+      # LiteLLM master key — a shared secret Claude Code sends as the Bearer token.
+      # Set ANTHROPIC_API_KEY=<same value> in settings.local.json so they match.
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY}
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--detailed_debug"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:4000/health/liveliness || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s

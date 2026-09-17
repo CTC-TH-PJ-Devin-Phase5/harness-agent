@@ -1,0 +1,31 @@
+# harness-coder Modelfile
+#
+# Bakes tuned parameters into the model so every Ollama call inherits them
+# without needing to send options on each request.
+#
+# To (re)build on the EC2 instance:
+#   ollama pull qwen3:32b
+#   ollama create harness-coder -f harness/litellm/harness-coder.Modelfile
+#
+# To verify:
+#   ollama show harness-coder
+
+FROM qwen3:32b
+
+# Low temperature for deterministic code generation.
+PARAMETER temperature 0.1
+
+# 32k context — Ollama default 2048 truncates code files.
+# qwen3:32b Q4_K_M ~20GB + ~4GB KV cache fits on A10G 24GB.
+PARAMETER num_ctx 32768
+
+# Constrain sampling for predictable output.
+PARAMETER top_p 0.9
+PARAMETER top_k 40
+
+# Penalise repetition to reduce stuck loops.
+PARAMETER repeat_penalty 1.05
+PARAMETER repeat_last_n 128
+
+# Offload all layers to GPU.
+PARAMETER num_gpu 99

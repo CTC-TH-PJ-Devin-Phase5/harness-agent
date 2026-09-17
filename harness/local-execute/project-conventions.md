@@ -101,9 +101,9 @@ Only modify files explicitly listed in the task string under "Files to create / 
 
 ## Project Stack
 
-<!-- Fill in after Phase 2 Spec is written for this project -->
-<!-- Example:
-- Frontend: React 18 + TypeScript 5 + Vite 5 + Tailwind CSS 3
-- Tests: Vitest 2 + @testing-library/react 14 + @testing-library/user-event 14
-- CSS: utility classes from the design system + CSS custom properties from globals.css
--->
+- **Frontend**: React 18.3.1 + TypeScript 5.5 + Vite 5.4 + Tailwind CSS 3.4
+- **Tests**: Vitest 2.1.9 + jsdom 25 + @testing-library/react 16 + @testing-library/jest-dom 6.10 + @testing-library/user-event
+- **CSS**: `apps/web/src/styles/globals.css` — single file, `@tailwind` directives + all custom classes
+- **Import alias**: `@/` → `src/` (configured in `vite.config.ts`)
+- **Test command**: `pnpm test:unit` (runs Vitest with `passWithNoTests`)
+- **No default exports** — named exports only throughout `apps/web/src/`
