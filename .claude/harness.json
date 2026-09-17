@@ -11,7 +11,8 @@
   },
   "execution": {
     "mode": "sequential",
-    "max_parallel": 1
+    "max_parallel": 1,
+    "branch": "current"
   },
   "subagents": {
     "execute": { "provider": "claude" }

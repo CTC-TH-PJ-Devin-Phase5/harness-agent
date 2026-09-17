@@ -163,6 +163,10 @@ and elsewhere in this file; where they do, the harness rule wins:
   own human approval ask has already succeeded — see Two dispatch modes
   above.
 - **Create or checkout the task's branch before writing anything.**
+  **Skip this entire step if `.claude/harness.json` → `execution.branch` is
+  `"current"` — just work on whatever branch is already checked out.**
+  When `execution.branch` is not `"current"` (or is absent), apply the full
+  rule below:
   **One branch per task, not per ticket** — every ticket in the task
   commits onto that same branch, in dependency order. Never work directly
   on `main`.
