@@ -29,3 +29,7 @@ PARAMETER repeat_last_n 128
 
 # Offload all layers to GPU.
 PARAMETER num_gpu 99
+
+# Disable thinking mode — prevents signature:null thinking blocks that break Claude Code's
+# conversation history validation and cause tool_uses:0 in agent sessions.
+PARAMETER think false

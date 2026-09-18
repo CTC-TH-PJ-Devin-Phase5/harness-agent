@@ -24,7 +24,7 @@ model_list:
 
   - model_name: claude-haiku-4-5-20251001
     litellm_params:
-      model: ollama/harness-coder
+      model: ollama_chat/harness-coder
       api_base: os.environ/OLLAMA_BASE_URL
 
   - model_name: openrouter/anthropic/claude-3.5-sonnet
